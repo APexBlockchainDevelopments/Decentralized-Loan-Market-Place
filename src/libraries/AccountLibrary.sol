@@ -19,4 +19,15 @@ library AccountLibrary {
         uint256 loanBids;
         uint256 totalLoans;
     }
+
+
+    struct ProposedLoan{
+        uint256 loanId;
+        address borrower;
+        address loanToken;
+        uint256 amount;
+        uint256 lengthOfLoan;
+
+        uint256 desiredAPRAmount;
+    }
 }
