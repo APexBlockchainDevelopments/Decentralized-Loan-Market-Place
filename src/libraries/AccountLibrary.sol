@@ -27,6 +27,9 @@ library AccountLibrary {
         address loanToken;
         uint256 amount;
         uint256 lengthOfLoan;
+        uint256 loanRequestTimeStamp;
+        uint256 loanRequestedLength;
+        uint256 loadExpectedStartTimeStamp;
 
         uint256 desiredAPRAmount;
     }
