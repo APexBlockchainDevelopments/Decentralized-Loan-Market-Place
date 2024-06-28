@@ -33,4 +33,18 @@ library AccountLibrary {
 
         uint256 desiredAPRAmount;
     }
+
+    struct ApprovedLoan{
+        address borrower;
+        address[] lenders;
+        address loanToken;
+
+        uint256 loandStartDate;
+        uint256 loanLength;
+        uint256 loanAmount;
+        uint256 paymentInterval;
+    }
+
+
+    //nft as collateral for the loan?
 }
