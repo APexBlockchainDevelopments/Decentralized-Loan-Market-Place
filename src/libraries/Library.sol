@@ -6,6 +6,7 @@ library AccountLibrary {
 
     struct Account {
         address wallet;
+        uint256 accountId;
         uint256 creationDate;
 
         //variables for Borrowers

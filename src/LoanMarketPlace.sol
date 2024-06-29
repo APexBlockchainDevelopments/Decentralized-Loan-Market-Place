@@ -4,16 +4,17 @@ pragma solidity 0.8.23;
 import {AccountLibrary} from "./libraries/Library.sol";
 
 contract LoanMarketPlance {
-    
-    using AccountLibrary for AccountLibrary.Account;
 
-    uint256 accountIds;
+    uint256 private accountIds;
 
-    mapping(uint256 => AccountLibrary.Account) accounts;
+    mapping(address => AccountLibrary.Account) private accounts;
 
     function makeNewAccount() public {
+        //Check if Account already exists
+
         AccountLibrary.Account memory newAccount = AccountLibrary.Account({
             wallet : msg.sender,
+            accountId : accountIds,
             creationDate : block.timestamp,
             totalAmountBorrowed : 0,
             requestedLoans : 0,
@@ -24,6 +25,11 @@ contract LoanMarketPlance {
             totalLoans : 0
         });
 
-        accounts[accountIds] = newAccount;
+        accounts[msg.sender] = newAccount;
+        accountIds++;
+    }
+
+    function getAccount(address accountAddress) public view returns(AccountLibrary.Account memory){
+        return accounts[accountAddress];
     }
 }
