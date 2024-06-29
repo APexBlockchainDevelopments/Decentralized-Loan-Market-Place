@@ -32,11 +32,20 @@ library AccountLibrary {
         uint256 loadExpectedStartTimeStamp;
 
         uint256 desiredAPRAmount;
+        mapping(uint256 => LoanOffer) offers;
+    }
+
+    struct LoanOffer{
+        uint256 loanId;
+        address lender;
+        uint256 amountTolend;
+        uint256 APRoffer;
+
     }
 
     struct ApprovedLoan{
         address borrower;
-        address[] lenders;
+        mapping(uint256 => address) lenders;  //if there's 10 lenders for a loan, then 0-9 is their individual IDs for the partuclar loan
         address loanToken;
 
         uint256 loandStartDate;
@@ -46,5 +55,5 @@ library AccountLibrary {
     }
 
 
-    //nft as collateral for the loan?
+    //ERC-1155 as collateral for the loan?
 }
