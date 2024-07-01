@@ -9,9 +9,11 @@ contract LoanMarketPlance {
 
     mapping(address => AccountLibrary.Account) private accounts;
 
-    function makeNewAccount() public {
-        //Check if Account already exists
+    // Mapping to track existence of accounts
+    mapping(address => bool) private accountExists;
 
+    function makeNewAccount() public {
+        require(!accountExists[_address], "Account already exists");
         AccountLibrary.Account memory newAccount = AccountLibrary.Account({
             wallet : msg.sender,
             accountId : accountIds,
