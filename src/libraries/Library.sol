@@ -19,6 +19,9 @@ library AccountLibrary {
         uint256 totalAmountLent;
         uint256 loanBids;
         uint256 totalLoans;
+
+
+        //Need a solution for collateral...
     }
 
 
