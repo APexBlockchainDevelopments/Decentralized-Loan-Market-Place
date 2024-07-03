@@ -1,6 +1,28 @@
+// Layout of Contract:
+// version
+// imports
+// errors
+// interfaces, libraries, contracts
+// Type declarations
+// State variables
+// Events
+// Modifiers
+// Functions
+
+// Layout of Functions:
+// constructor
+// receive function (if exists)
+// fallback function (if exists)
+// external
+// public
+// internal
+// private
+// view & pure functions
+
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AccountLibrary} from "./libraries/Library.sol";
 
 contract LoanMarketPlance {
@@ -13,7 +35,7 @@ contract LoanMarketPlance {
     mapping(address => bool) private accountExists;
 
     function makeNewAccount() public {
-        require(!accountExists[_address], "Account already exists");
+        require(!accountExists[msg.sender], "Account already exists");
         AccountLibrary.Account memory newAccount = AccountLibrary.Account({
             wallet : msg.sender,
             accountId : accountIds,
@@ -31,6 +53,19 @@ contract LoanMarketPlance {
         accountIds++;
     }
 
+
+    function submitLoanRequest(
+        uint256 amount, 
+        address tokenToBorrow, 
+        uint256 duration, 
+        address collateralToken,
+        uint256 collateral) public {
+
+    }
+
+
+
+    ////Getter Functions/////
     function getAccount(address accountAddress) public view returns(AccountLibrary.Account memory){
         return accounts[accountAddress];
     }

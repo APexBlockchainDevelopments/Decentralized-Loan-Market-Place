@@ -12,4 +12,8 @@ Example 2:
 Mark a new user to the platform requests a loan of $1M USDC for 12 months. Lenders see that he has no history and chose to ignore his request. However Eli has requested several small loans over the course of a year and how has established history. Over the last year Eli has borrowed and repaid a total of $500k in loans. Eli requests a slightly larger loan normal of him, for $50k USDC. Lenders although weary of lending out a larger loan of $50k USDC, see that Eli has established a history not only of total loaned amount, but also repayment history as well. Macie a lender, believes this is sufficient but still on the more risky side, so she places a bid with a rate of 7.5% APR because of the larger loan amount.  
 
 Example 3: 
-Joe has account history and requests a loan of 1,000,000,000 SHIBA. Although he has account history of repayments, Kelsey believes this loan is still a bit risky. As a result she bids on the loan for 6.0 APR and a collateral of 3wETH to help secure the loan. If Joe defaults on his payment, the collateral of 3wETH goes to Kelsey. 
+Joe has account history and requests a loan of 1,000,000,000 SHIBA. Although he has account history of repayments, Kelsey believes this loan is still a bit risky. As a result she bids on the loan for 6.0% APR and a collateral of 3wETH to help secure the loan. If Joe defaults on his payment, the collateral of 3wETH goes to Kelsey.
+
+
+
+

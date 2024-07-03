@@ -18,10 +18,7 @@ library AccountLibrary {
         //variables for Lenders
         uint256 totalAmountLent;
         uint256 loanBids;
-        uint256 totalLoans;
-
-
-        //Need a solution for collateral...
+        uint256 totalLoans;        
     }
 
 
@@ -30,16 +27,19 @@ library AccountLibrary {
         address borrower;
         address loanToken;
         uint256 amount;
-        uint256 lengthOfLoan;
+        uint256 duration;
         uint256 loanRequestTimeStamp;
-        uint256 loanRequestedLength;
         uint256 loadExpectedStartTimeStamp;
 
         uint256 desiredAPRAmount;
-        mapping(uint256 => LoanOffer) offers;
+        mapping(uint256 => Bid) offers;  //This seems sloppy
+
+        address collateralToken;
+        uint256 collateralAmount;
+        bool fulfilled;
     }
 
-    struct LoanOffer{
+    struct Bid{
         uint256 loanId;
         address lender;
         uint256 amountTolend;
@@ -49,7 +49,7 @@ library AccountLibrary {
 
     struct ApprovedLoan{
         address borrower;
-        mapping(uint256 => address) lenders;  //if there's 10 lenders for a loan, then 0-9 is their individual IDs for the partuclar loan
+        address lender;
         address loanToken;
 
         uint256 loandStartDate;
@@ -59,5 +59,5 @@ library AccountLibrary {
     }
 
 
-    //ERC-1155 as collateral for the loan?
+    //ERC-721 as collateral as CDP for the loan?
 }
