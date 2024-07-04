@@ -23,16 +23,19 @@
 pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AccountLibrary} from "./libraries/Library.sol";
 
-contract LoanMarketPlance {
+contract LoanMarketPlance is Ownable{
 
     uint256 private accountIds;
     uint256 private loanIds;
 
-    mapping(address => AccountLibrary.Account) private accounts;
-    mapping(address => bool) private accountExists;     // Mapping to track existence of accounts
-    mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans;
+    mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
+    mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
+    mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans; // Mapping to track existence of proposedLoans
+
+    constructor() Ownable(msg.sender){}
 
     function makeNewAccount() public {
         require(!accountExists[msg.sender], "Account already exists");
@@ -81,4 +84,11 @@ contract LoanMarketPlance {
     function getAccount(address accountAddress) public view returns(AccountLibrary.Account memory){
         return accounts[accountAddress];
     }
+
+    function getProposedLoan(uint256 loanId) public view returns(AccountLibrary.ProposedLoan memory){
+        return proposedLoans[loanId];
+    }
+
+
+    //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
 }
