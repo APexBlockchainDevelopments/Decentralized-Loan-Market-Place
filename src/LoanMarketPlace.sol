@@ -28,11 +28,11 @@ import {AccountLibrary} from "./libraries/Library.sol";
 contract LoanMarketPlance {
 
     uint256 private accountIds;
+    uint256 private loanIds;
 
     mapping(address => AccountLibrary.Account) private accounts;
-
-    // Mapping to track existence of accounts
-    mapping(address => bool) private accountExists;
+    mapping(address => bool) private accountExists;     // Mapping to track existence of accounts
+    mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans;
 
     function makeNewAccount() public {
         require(!accountExists[msg.sender], "Account already exists");
@@ -59,8 +59,20 @@ contract LoanMarketPlance {
         address tokenToBorrow, 
         uint256 duration, 
         address collateralToken,
-        uint256 collateral) public {
+        uint256 collateralAmount) public {
+        
+        require(accountExists[msg.sender], "Account does not exist");
 
+        AccountLibrary.ProposedLoan storage newLoan = proposedLoans[loanIds];
+        newLoan.loanId = loanIds;
+        newLoan.borrower = msg.sender;
+        newLoan.loanToken = tokenToBorrow;
+        newLoan.amount = amount;
+        newLoan.duration = duration;
+        newLoan.collateralToken = collateralToken;
+        newLoan.collateralAmount = collateralAmount;
+
+        loanIds++;
     }
 
 

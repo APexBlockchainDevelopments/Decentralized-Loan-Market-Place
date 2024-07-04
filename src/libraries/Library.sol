@@ -28,15 +28,12 @@ library AccountLibrary {
         address loanToken;
         uint256 amount;
         uint256 duration;
-        uint256 loanRequestTimeStamp;
-        uint256 loadExpectedStartTimeStamp;
-
-        uint256 desiredAPRAmount;
-        mapping(uint256 => Bid) offers;  //This seems sloppy
+        
 
         address collateralToken;
         uint256 collateralAmount;
-        bool fulfilled;
+
+        mapping(uint256 => Bid) offers;  //This seems sloppy
     }
 
     struct Bid{
