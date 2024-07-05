@@ -1,6 +1,6 @@
 ## Decentralized Fixed Rate Lending Marketplace
 
-The concept is to create a marketplace that connects borrowers with lenders. Borrowers create a proposed loan with the amount requested to borrow and the lenders can bid on the loan giving the borrower the lowest possible APR. Lenders are able to make yield on their assets. This provides a mutual beneficial marketplace for both lenders and borrowers. The market place will also feature account history for both borrowers and lenders. This provides context about the loan. For example if a user is brand new and has no history it is unlikely a lender will take a risk on them without having credible history of repayments. However this alone does not guarantee the loan will be repaid, a lender is also capable of requesting collateral amount before submitting their bid on the loan. These two mechanisms provide context and more certainty about the loan however is no guarantee the loan will be repaid. For this reason the platform is designed at as "lend-at-your-own-risk" methodology. 
+The concept is to create a marketplace that connects borrowers with lenders. Borrowers create a proposed loan with the amount requested to borrow and the lenders can bid on the loan giving the borrower the lowest possible APR. Lenders are able to make yield on their assets. This provides a mutual beneficial marketplace for both lenders and borrowers. The market place will also feature account history for both borrowers and lenders. This provides context about the loan. For example if a user is brand new and has no history it is unlikely a lender will take a risk on them without having credible history of repayments. However this alone does not guarantee the loan will be repaid, a borrower is also capable of attaching collateral amount before submitting their proposed loan. These two mechanisms provide context and more certainty about the loan however is no guarantee the loan will be repaid. For this reason the platform is designed at as "lend-at-your-own-risk" methodology. 
 
 
 Example 1: 
@@ -17,3 +17,10 @@ Joe has account history and requests a loan of 1,000,000,000 SHIBA. Although he 
 
 
 
+//Todo
+Explain loan approval process
+Explain escrow process
+Explain collateral liquidation
+Explain 7 day period
+Explain collateral better
+Explain oracles and approved tokens

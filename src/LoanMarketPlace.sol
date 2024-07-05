@@ -35,6 +35,9 @@ contract LoanMarketPlance is Ownable{
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
     mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans; // Mapping to track existence of proposedLoans
 
+    mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
+
+
     constructor() Ownable(msg.sender){}
 
     function makeNewAccount() public {
@@ -65,6 +68,9 @@ contract LoanMarketPlance is Ownable{
         uint256 collateralAmount) public {
         
         require(accountExists[msg.sender], "Account does not exist");
+        require(approvedCollateralTokens[collateralToken], "Collateral Token Not Approved");
+
+        require(amount != 0, "Loan Amount cannot be zero");
 
         AccountLibrary.ProposedLoan storage newLoan = proposedLoans[loanIds];
         newLoan.loanId = loanIds;
@@ -72,8 +78,8 @@ contract LoanMarketPlance is Ownable{
         newLoan.loanToken = tokenToBorrow;
         newLoan.amount = amount;
         newLoan.duration = duration;
-        newLoan.collateralToken = collateralToken;
-        newLoan.collateralAmount = collateralAmount;
+        newLoan.collateralToken = collateralToken;  
+        newLoan.collateralAmount = collateralAmount; //Potentially Collateral Amount could be zero, however that is up to the Lenders to decide to lend to someone with no collateral upfront
 
         loanIds++;
     }
