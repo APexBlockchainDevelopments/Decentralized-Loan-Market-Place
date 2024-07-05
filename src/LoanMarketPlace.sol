@@ -33,12 +33,20 @@ contract LoanMarketPlance is Ownable{
 
     mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
-    mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans; // Mapping to track existence of proposedLoans
+    mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans; // Mapping to track existence of proposedLoans    
+    mapping(uint256 => mapping(uint256 => AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
 
     constructor() Ownable(msg.sender){}
+
+    function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
+        //Possible check to see if address is ERC-20?
+        //This function doubles as a blacklist function if a token has some type of issues allowing the admins to disable it or enable it if it's deemed fit
+        approvedCollateralTokens[_token] = _approval;
+
+    }
 
     function makeNewAccount() public {
         require(!accountExists[msg.sender], "Account already exists");

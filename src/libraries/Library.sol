@@ -32,8 +32,6 @@ library AccountLibrary {
 
         address collateralToken;
         uint256 collateralAmount;
-
-        mapping(uint256 => Bid) offers;  //This seems sloppy
     }
 
     struct Bid{
