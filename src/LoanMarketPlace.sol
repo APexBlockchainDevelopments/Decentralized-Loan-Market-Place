@@ -34,7 +34,7 @@ contract LoanMarketPlance is Ownable{
     mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
     mapping(uint256 => AccountLibrary.ProposedLoan) private proposedLoans; // Mapping to track existence of proposedLoans    
-    mapping(uint256 => mapping(uint256 => AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
+    mapping(uint256 loanId => mapping(uint256 bidId=> AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
@@ -101,6 +101,10 @@ contract LoanMarketPlance is Ownable{
 
     function getProposedLoan(uint256 loanId) public view returns(AccountLibrary.ProposedLoan memory){
         return proposedLoans[loanId];
+    }
+
+    function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
+        return approvedCollateralTokens[_token];
     }
 
 
