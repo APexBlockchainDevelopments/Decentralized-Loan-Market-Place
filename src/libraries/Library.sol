@@ -28,18 +28,17 @@ library AccountLibrary {
         address loanToken;
         uint256 amount;
         uint256 duration;
-        
 
         address collateralToken;
         uint256 collateralAmount;
+
+        uint256 bids;
     }
 
     struct Bid{
         uint256 loanId;
         address lender;
-        uint256 amountTolend;
         uint256 APRoffer;
-
     }
 
     struct ApprovedLoan{

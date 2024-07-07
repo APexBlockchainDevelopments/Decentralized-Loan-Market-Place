@@ -92,6 +92,12 @@ contract LoanMarketPlance is Ownable{
         loanIds++;
     }
 
+    function createBid(uint256 _loanId, uint256 _APRoffer) public {
+        //check if bidding peroid ongoing
+        
+        //create bid and add to mapping
+    }
+
 
 
     ////Getter Functions/////
