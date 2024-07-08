@@ -94,22 +94,33 @@ contract LoanMarketPlance is Ownable{
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
-        uint256 proposedLoanCreationDate = proposedLoans[_loanId].creationTimeStamp; // gas effecientcy
-        uint256 currentLoans = proposedLoans[_loanId].bids; // gas effecientcy
-        proposedLoans[_loanId].bids++;// gas effecientcy
-
+        uint256 proposedLoanCreationDate = proposedLoans[_loanId].creationTimeStamp; // needs gas effecientcy rewrite
+        uint256 currentLoans = proposedLoans[_loanId].bids; // needs gas effecientcy rewrite
+        
         require(proposedLoanCreationDate != 0, "Loan Does not exist");//check if bidding peroid ongoing check if loan exists
         require(block.timestamp <= (proposedLoanCreationDate + 7 days), "Bidding period for this loan has ended"); //check if bidding peroid ongoing
         
         //create bid and add to mapping
         AccountLibrary.Bid memory newBid = AccountLibrary.Bid({
+            bidId : currentLoans,
             loanId : _loanId,
             lender : msg.sender,
             APRoffer : _APRoffer,
             timeStamp : block.timestamp
         });
 
+        proposedLoans[_loanId].bids++;   // needs gas effecientcy rewrite
         loanOffers[_loanId][currentLoans] = newBid;
+
+        //approve tokens at this point??
+    }
+
+    function selectBid(uint256 _loanId, uint256 _selectedBid) public {
+        //make sure its the bid owner
+        //make sure the bid is legit
+        //transfer tokens and collateral
+        //update user stats
+
     }
 
 
@@ -141,6 +152,14 @@ contract LoanMarketPlance is Ownable{
             }
             return bids;
         }
+    }
+
+    receive() external payable {
+        revert();
+    }
+
+    fallback() external payable {
+        revert();
     }
 
 

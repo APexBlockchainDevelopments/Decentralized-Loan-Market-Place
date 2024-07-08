@@ -36,6 +36,7 @@ library AccountLibrary {
     }
 
     struct Bid{
+        uint256 bidId;
         uint256 loanId;
         address lender;
         uint256 APRoffer;
