@@ -53,7 +53,7 @@ contract LoanMarketPlance is Ownable{
         AccountLibrary.Account memory newAccount = AccountLibrary.Account({
             wallet : msg.sender,
             accountId : accountIds,
-            creationDate : block.timestamp,
+            creationTimeStamp : block.timestamp,
             totalAmountBorrowed : 0,
             requestedLoans : 0,
             successfulLoansCompletedAndRepaid : 0,
@@ -80,11 +80,12 @@ contract LoanMarketPlance is Ownable{
 
         require(amount != 0, "Loan Amount cannot be zero");
 
-        AccountLibrary.ProposedLoan storage newLoan = proposedLoans[loanIds];
+        AccountLibrary.ProposedLoan storage newLoan = proposedLoans[loanIds]; //optimize this gas usage here, use memory then push to storage
         newLoan.loanId = loanIds;
         newLoan.borrower = msg.sender;
         newLoan.loanToken = tokenToBorrow;
         newLoan.amount = amount;
+        newLoan.creationTimeStamp = block.timestamp;
         newLoan.duration = duration;
         newLoan.collateralToken = collateralToken;  
         newLoan.collateralAmount = collateralAmount; //Potentially Collateral Amount could be zero, however that is up to the Lenders to decide to lend to someone with no collateral upfront
@@ -93,9 +94,22 @@ contract LoanMarketPlance is Ownable{
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
-        //check if bidding peroid ongoing
+        uint256 proposedLoanCreationDate = proposedLoans[_loanId].creationTimeStamp; // gas effecientcy
+        uint256 currentLoans = proposedLoans[_loanId].bids; // gas effecientcy
+        proposedLoans[_loanId].bids++;// gas effecientcy
+
+        require(proposedLoanCreationDate != 0, "Loan Does not exist");//check if bidding peroid ongoing check if loan exists
+        require(block.timestamp <= (proposedLoanCreationDate + 7 days), "Bidding period for this loan has ended"); //check if bidding peroid ongoing
         
         //create bid and add to mapping
+        AccountLibrary.Bid memory newBid = AccountLibrary.Bid({
+            loanId : _loanId,
+            lender : msg.sender,
+            APRoffer : _APRoffer,
+            timeStamp : block.timestamp
+        });
+
+        loanOffers[_loanId][currentLoans] = newBid;
     }
 
 
@@ -111,6 +125,21 @@ contract LoanMarketPlance is Ownable{
 
     function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
         return approvedCollateralTokens[_token];
+    }
+
+    function getAllBidsForProposedLoan(uint256 _loanId) public view returns(AccountLibrary.Bid[] memory){
+        //Get number of bids for proposedLoan
+        AccountLibrary.Bid[] memory bids;
+        AccountLibrary.ProposedLoan memory proposedLoan = proposedLoans[_loanId];
+
+        if(proposedLoan.bids == 0){
+            return bids;
+        } else {
+            for(uint256 i; i< proposedLoan.bids; i++){
+                bids[i] = loanOffers[_loanId][i];
+            }
+            return bids;
+        }
     }
 
 

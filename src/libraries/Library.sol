@@ -7,7 +7,7 @@ library AccountLibrary {
     struct Account {
         address wallet;
         uint256 accountId;
-        uint256 creationDate;
+        uint256 creationTimeStamp;
 
         //variables for Borrowers
         uint256 totalAmountBorrowed;
@@ -27,11 +27,11 @@ library AccountLibrary {
         address borrower;
         address loanToken;
         uint256 amount;
+        uint256 creationTimeStamp;
         uint256 duration;
 
         address collateralToken;
         uint256 collateralAmount;
-
         uint256 bids;
     }
 
@@ -39,6 +39,7 @@ library AccountLibrary {
         uint256 loanId;
         address lender;
         uint256 APRoffer;
+        uint256 timeStamp;
     }
 
     struct ApprovedLoan{
