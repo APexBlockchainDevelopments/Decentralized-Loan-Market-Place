@@ -26,7 +26,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AccountLibrary} from "./libraries/Library.sol";
 
-contract LoanMarketPlance is Ownable{
+contract LoanMarketPlace is Ownable{
 
     uint256 private accountIds;
     uint256 private loanIds;
@@ -116,7 +116,13 @@ contract LoanMarketPlance is Ownable{
     }
 
     function selectBid(uint256 _loanId, uint256 _selectedBid) public {
-        //make sure its the bid owner
+        AccountLibrary.ProposedLoan memory selectedLoan = proposedLoans[_loanId];
+        require(selectedLoan.borrower == msg.sender, "You are not the owner of this loan"); //make sure its the bid owner
+        require(!selectedLoan.bidSelected, "Bid has already been selected");
+        require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
+        require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
+        
+
         //make sure the bid is legit
         //transfer tokens and collateral
         //update user stats
@@ -155,7 +161,7 @@ contract LoanMarketPlance is Ownable{
     }
 
     receive() external payable {
-        revert();
+
     }
 
     fallback() external payable {
@@ -165,3 +171,6 @@ contract LoanMarketPlance is Ownable{
 
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
 }
+
+
+//TODO esparate Escrow holding contract

@@ -18,7 +18,7 @@ library AccountLibrary {
         //variables for Lenders
         uint256 totalAmountLent;
         uint256 loanBids;
-        uint256 totalLoans;        
+        uint256 totalLoans;  
     }
 
 
@@ -33,6 +33,7 @@ library AccountLibrary {
         address collateralToken;
         uint256 collateralAmount;
         uint256 bids;
+        bool bidSelected;
     }
 
     struct Bid{
