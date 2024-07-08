@@ -33,7 +33,11 @@ library AccountLibrary {
         address collateralToken;
         uint256 collateralAmount;
         uint256 bids;
-        bool bidSelected;
+        Bid bid;
+
+        //loan repaid 
+        //apr
+
     }
 
     struct Bid{
@@ -42,19 +46,19 @@ library AccountLibrary {
         address lender;
         uint256 APRoffer;
         uint256 timeStamp;
+        bool accepted;
     }
 
-    struct ApprovedLoan{
-        address borrower;
-        address lender;
-        address loanToken;
-
-        uint256 loandStartDate;
-        uint256 loanLength;
-        uint256 loanAmount;
-        uint256 paymentInterval;
+    function defaultBid() internal pure returns (Bid memory) {
+        return Bid({
+            bidId: 0,
+            loanId: 0,
+            lender: address(0),
+            APRoffer: 0,
+            timeStamp: 0,
+            accepted: false
+        });
     }
-
 
     //ERC-721 as collateral as CDP for the loan?
 }

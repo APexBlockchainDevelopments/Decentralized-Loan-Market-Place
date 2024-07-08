@@ -48,6 +48,13 @@ contract LoanMarketPlace is Ownable{
 
     }
 
+    
+    receive() external payable {}
+
+    fallback() external payable {
+        revert();
+    }
+
     function makeNewAccount() public {
         require(!accountExists[msg.sender], "Account already exists");
         AccountLibrary.Account memory newAccount = AccountLibrary.Account({
@@ -89,7 +96,7 @@ contract LoanMarketPlace is Ownable{
         newLoan.duration = duration;
         newLoan.collateralToken = collateralToken;  
         newLoan.collateralAmount = collateralAmount; //Potentially Collateral Amount could be zero, however that is up to the Lenders to decide to lend to someone with no collateral upfront
-
+        newLoan.bid = AccountLibrary.defaultBid();
         loanIds++;
     }
 
@@ -106,7 +113,8 @@ contract LoanMarketPlace is Ownable{
             loanId : _loanId,
             lender : msg.sender,
             APRoffer : _APRoffer,
-            timeStamp : block.timestamp
+            timeStamp : block.timestamp,
+            accepted : false
         });
 
         proposedLoans[_loanId].bids++;   // needs gas effecientcy rewrite
@@ -116,14 +124,19 @@ contract LoanMarketPlace is Ownable{
     }
 
     function selectBid(uint256 _loanId, uint256 _selectedBid) public {
-        AccountLibrary.ProposedLoan memory selectedLoan = proposedLoans[_loanId];
+        AccountLibrary.ProposedLoan storage  selectedLoan = proposedLoans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the owner of this loan"); //make sure its the bid owner
-        require(!selectedLoan.bidSelected, "Bid has already been selected");
+        require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
         require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
         require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
         
 
-        //make sure the bid is legit
+        AccountLibrary.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
+        require(selectedBid.lender != address(0), "Bid does not exist"); //make sure bid is legit, borrower can't select bid that doesn't exist
+
+        selectedLoan.bid = selectedBid;
+        selectedBid.accepted = true;
+        
         //transfer tokens and collateral
         //update user stats
 
@@ -159,15 +172,6 @@ contract LoanMarketPlace is Ownable{
             return bids;
         }
     }
-
-    receive() external payable {
-
-    }
-
-    fallback() external payable {
-        revert();
-    }
-
 
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
 }
