@@ -129,6 +129,7 @@ contract LoanMarketPlance is Ownable{
 
     function getAllBidsForProposedLoan(uint256 _loanId) public view returns(AccountLibrary.Bid[] memory){
         //Get number of bids for proposedLoan
+        //Desparately needs gas optimziation
         AccountLibrary.Bid[] memory bids;
         AccountLibrary.ProposedLoan memory proposedLoan = proposedLoans[_loanId];
 
