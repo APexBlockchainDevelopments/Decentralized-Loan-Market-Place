@@ -39,6 +39,17 @@ contract LoanMarketPlace is Ownable{
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
 
+    modifier onlyLender() {
+        require(msg.sender == lender, "Only lender can call this function");
+        _;
+    }
+
+    modifier onlyBorrower() {
+        require(msg.sender == borrower, "Only borrower can call this function");
+        _;
+    }
+
+
     constructor() Ownable(msg.sender){}
 
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
@@ -130,9 +141,8 @@ contract LoanMarketPlace is Ownable{
         IERC20(proposedLoans[_loanId].loanToken).approve(address(this), proposedLoans[_loanId].amount);//approve tokens at this point??
     }
 
-    function selectBid(uint256 _loanId, uint256 _selectedBid) public {
+    function selectBid(uint256 _loanId, uint256 _selectedBid) public onlyBorrower {
         AccountLibrary.Loan storage  selectedLoan = proposedLoans[_loanId];
-        require(selectedLoan.borrower == msg.sender, "You are not the owner of this loan"); //make sure its the bid owner
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
         require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
         require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
