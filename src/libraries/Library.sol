@@ -22,7 +22,16 @@ library AccountLibrary {
     }
 
 
-    struct ProposedLoan{
+    enum LoanStatus {
+        Proposed,
+        InProgress,
+        Defaulted,
+        Repaid
+    }
+
+
+    struct Loan{
+        LoanStatus loanStatus;
         uint256 loanId;
         address borrower;
         address loanToken;
@@ -35,9 +44,10 @@ library AccountLibrary {
         uint256 bids;
         Bid bid;
 
-        //loan repaid 
-        //apr
 
+        //loan repaid  -- not needed because it would be in status 
+        //apr -- not needed because it's in the selected bid
+        //loan completed  -- not needed because it would be in status 
     }
 
     struct Bid{
