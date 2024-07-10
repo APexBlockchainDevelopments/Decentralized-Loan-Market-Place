@@ -56,7 +56,7 @@ library AccountLibrary {
         uint256 bidId;
         uint256 loanId;
         address lender;
-        uint256 APRoffer;
+        uint256 APRoffer;  // APR in basis points (e.g., 500 for 5%)
         uint256 timeStamp;
         bool accepted;
     }

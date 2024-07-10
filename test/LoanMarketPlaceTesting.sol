@@ -81,7 +81,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
     function test_userCantCreateAccountTwice() public borrowerMakesAccount {
         vm.prank(borrower);
-        vm.expectRevert();
+        vm.expectRevert("Account already exists");
         loanMarketPlace.makeNewAccount();
     }
 
@@ -98,6 +98,12 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
     modifier borrowerMakesAccount() {
         vm.prank(borrower);
+        loanMarketPlace.makeNewAccount();
+        _;
+    }
+
+    modifier lenderMakesAccount() {
+        vm.prank(lender);
         loanMarketPlace.makeNewAccount();
         _;
     }

@@ -163,7 +163,8 @@ contract LoanMarketPlace is Ownable{
         //Not necessary?
         //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
         //what do if tokens are transferred out side of this contract? 
-        IERC20(selectedLoan.loanToken).transfer(selectedLoan.bid.lender, selectedLoan.amount);
+        uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
+        IERC20(selectedLoan.loanToken).transfer(selectedLoan.bid.lender, totalAmountToBeRepaid); // amount + APR
         //Check to see if loan is enough
         selectedLoan.loanStatus = AccountLibrary.LoanStatus.Repaid;
         //update account stats
@@ -181,6 +182,15 @@ contract LoanMarketPlace is Ownable{
         IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
 
         //Update account statuses
+    }
+
+
+    //Internal functions
+    //@params _duration is in seconds
+    function calculateInterest(uint256 _amount, uint256 _apr, uint256 _duration) internal pure returns (uint) {
+        // Interest = loan amount * APR * (loan duration / 365 days) / 10000 (to account for basis points)
+        uint interest = (_amount * _apr * _duration) / (365 days * 10000);
+        return interest;
     }
 
 
