@@ -59,14 +59,49 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         vm.expectRevert();
         loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
     }
+    
 
-    //------------------MODIFIER----------------------------------------------
+    function test_userCanCreateAccount() public {
+        vm.prank(borrower);
+        loanMarketPlace.makeNewAccount();
+
+        AccountLibrary.Account memory newAccount = loanMarketPlace.getAccount(borrower);
+        
+        assertEq(newAccount.wallet, borrower);
+        assertEq(newAccount.accountId, 0);
+        assertEq(newAccount.creationTimeStamp, block.timestamp);
+        assertEq(newAccount.totalAmountBorrowed, 0);
+        assertEq(newAccount.requestedLoans, 0);
+        assertEq(newAccount.successfulLoansCompletedAndRepaid, 0);
+        assertEq(newAccount.totalAmountRepaid, 0);
+        assertEq(newAccount.totalAmountLent, 0);
+        assertEq(newAccount.loanBids, 0);
+        assertEq(newAccount.totalLoans, 0);
+    }
+
+    function test_userCantCreateAccountTwice() public borrowerMakesAccount {
+        vm.prank(borrower);
+        vm.expectRevert();
+        loanMarketPlace.makeNewAccount();
+    }
+
+    function test_fuzzUsersCreateAccounts(uint256 accounts) public {
+
+    }
+
+    //------------------MODIFIERS----------------------------------------------
     modifier adminAddsCollateralTokenToApprovedCollateralTokens() {
         vm.prank(admin);
         loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
         _;
     }
-    //------------------MODIFIER----------------------------------------------
+
+    modifier borrowerMakesAccount() {
+        vm.prank(borrower);
+        loanMarketPlace.makeNewAccount();
+        _;
+    }
+    //------------------MODIFIERS----------------------------------------------
 
 
 }

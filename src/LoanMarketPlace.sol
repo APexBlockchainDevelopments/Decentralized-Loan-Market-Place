@@ -39,7 +39,7 @@ contract LoanMarketPlace is Ownable{
     mapping(uint256 loanId => mapping(uint256 bidId=> AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
 
     constructor() Ownable(msg.sender){}
-        
+
     receive() external payable {}
 
     fallback() external payable {
@@ -70,6 +70,7 @@ contract LoanMarketPlace is Ownable{
         });
 
         accounts[msg.sender] = newAccount;
+        accountExists[msg.sender] = true;
         accountIds++;
     }
 

@@ -5,20 +5,22 @@ pragma solidity 0.8.23;
 library AccountLibrary {
 
     struct Account {
-        address wallet;
+        address wallet;  //Maybe change name of variable
         uint256 accountId;
         uint256 creationTimeStamp;
 
         //variables for Borrowers
         uint256 totalAmountBorrowed;
-        uint256 requestedLoans;
-        uint256 successfulLoansCompletedAndRepaid;
+        uint256 requestedLoans;  //shoulder this be an array?
+        uint256 successfulLoansCompletedAndRepaid; //shoulder this be an array?
         uint256 totalAmountRepaid;
         
         //variables for Lenders
         uint256 totalAmountLent;
-        uint256 loanBids;
-        uint256 totalLoans;  
+        uint256 loanBids;  //total loan bids? 
+        uint256 totalLoans;    //Total accepted loans?
+
+        //is all this information necessary? Maybe just another struct. Don't use reduntant information
     }
 
 
