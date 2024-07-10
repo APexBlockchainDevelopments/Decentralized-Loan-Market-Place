@@ -33,21 +33,10 @@ contract LoanMarketPlace is Ownable{
 
     mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
-    mapping(uint256 => AccountLibrary.Loan) private proposedLoans; // Mapping to track existence of proposedLoans    
+    mapping(uint256 => AccountLibrary.Loan) private loans; // Mapping to track existence of proposedLoans    
     mapping(uint256 loanId => mapping(uint256 bidId=> AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
-
-
-    modifier onlyLender() {
-        require(msg.sender == lender, "Only lender can call this function");
-        _;
-    }
-
-    modifier onlyBorrower() {
-        require(msg.sender == borrower, "Only borrower can call this function");
-        _;
-    }
 
 
     constructor() Ownable(msg.sender){}
@@ -98,7 +87,7 @@ contract LoanMarketPlace is Ownable{
 
         require(amount != 0, "Loan Amount cannot be zero");
 
-        AccountLibrary.Loan storage newLoan = proposedLoans[loanIds]; //optimize this gas usage here, use memory then push to storage
+        AccountLibrary.Loan storage newLoan = loans[loanIds]; //optimize this gas usage here, use memory then push to storage
         newLoan.loanStatus = AccountLibrary.LoanStatus.Proposed;
         newLoan.loanId = loanIds;
         newLoan.borrower = msg.sender;
@@ -117,8 +106,8 @@ contract LoanMarketPlace is Ownable{
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
-        uint256 proposedLoanCreationDate = proposedLoans[_loanId].creationTimeStamp; // needs gas effecientcy rewrite
-        uint256 currentLoans = proposedLoans[_loanId].bids; // needs gas effecientcy rewrite
+        uint256 proposedLoanCreationDate = loans[_loanId].creationTimeStamp; // needs gas effecientcy rewrite
+        uint256 currentLoans = loans[_loanId].bids; // needs gas effecientcy rewrite
         
         require(accountExists[msg.sender], "Account does not exist");
         require(proposedLoanCreationDate != 0, "Loan Does not exist");//check if bidding peroid ongoing check if loan exists
@@ -134,15 +123,16 @@ contract LoanMarketPlace is Ownable{
             accepted : false
         });
 
-        proposedLoans[_loanId].bids++;   // needs gas effecientcy rewrite
+        loans[_loanId].bids++;   // needs gas effecientcy rewrite
         loanOffers[_loanId][currentLoans] = newBid;
 
         
-        IERC20(proposedLoans[_loanId].loanToken).approve(address(this), proposedLoans[_loanId].amount);//approve tokens at this point??
+        IERC20(loans[_loanId].loanToken).approve(address(this), loans[_loanId].amount);//approve tokens at this point??
     }
 
-    function selectBid(uint256 _loanId, uint256 _selectedBid) public onlyBorrower {
-        AccountLibrary.Loan storage  selectedLoan = proposedLoans[_loanId];
+    function selectBid(uint256 _loanId, uint256 _selectedBid) public  {
+        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
         require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
         require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
@@ -161,7 +151,36 @@ contract LoanMarketPlace is Ownable{
         //Escrow Collateral
         IERC20(selectedLoan.collateralToken).transfer(address(this), selectedLoan.collateralAmount);
 
-        //Update 
+        //Update Account Data
+    }
+
+    function repayLoan(uint256 _loanId) public {
+        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
+        require(block.timestamp <= selectedLoan.creationTimeStamp + selectedLoan.duration, "Loan repayment period has ended");
+        require(selectedLoan.loanStatus == AccountLibrary.LoanStatus.InProgress, "Loan is not in Progress");
+
+        //Not necessary?
+        //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
+        //what do if tokens are transferred out side of this contract? 
+        IERC20(selectedLoan.loanToken).transfer(selectedLoan.bid.lender, selectedLoan.amount);
+        //Check to see if loan is enough
+        selectedLoan.loanStatus = AccountLibrary.LoanStatus.Repaid;
+        //update account stats
+
+    }
+
+    function claimCollateral(uint256 _loanId) public {
+        //Lender can claim collateral if loan isn't repaid in time
+        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        require(selectedLoan.creationTimeStamp + 14 days >= block.timestamp, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
+        require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
+
+        selectedLoan.loanStatus = AccountLibrary.LoanStatus.Defaulted;
+
+        IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
+
+        //Update account statuses
     }
 
 
@@ -172,7 +191,7 @@ contract LoanMarketPlace is Ownable{
     }
 
     function getProposedLoan(uint256 loanId) public view returns(AccountLibrary.Loan memory){
-        return proposedLoans[loanId];
+        return loans[loanId];
     }
 
     function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
@@ -183,7 +202,7 @@ contract LoanMarketPlace is Ownable{
         //Get number of bids for proposedLoan
         //Desparately needs gas optimziation
         AccountLibrary.Bid[] memory bids;
-        AccountLibrary.Loan memory proposedLoan = proposedLoans[_loanId];
+        AccountLibrary.Loan memory proposedLoan = loans[_loanId];
 
         if(proposedLoan.bids == 0){
             return bids;
@@ -197,6 +216,3 @@ contract LoanMarketPlace is Ownable{
 
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
 }
-
-
-//TODO esparate Escrow holding contract
