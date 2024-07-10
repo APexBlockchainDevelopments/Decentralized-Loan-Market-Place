@@ -31,28 +31,27 @@ contract LoanMarketPlace is Ownable{
     uint256 private accountIds;
     uint256 private loanIds;
 
+    mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
+
     mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
     mapping(uint256 => AccountLibrary.Loan) private loans; // Mapping to track existence of proposedLoans    
     mapping(uint256 loanId => mapping(uint256 bidId=> AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
 
-    mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
-
-
     constructor() Ownable(msg.sender){}
+        
+    receive() external payable {}
 
+    fallback() external payable {
+        revert();
+    }
+
+    
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
         //Possible check to see if address is ERC-20?
         //This function doubles as a blacklist function if a token has some type of issues allowing the admins to disable it or enable it if it's deemed fit
         approvedCollateralTokens[_token] = _approval;
 
-    }
-
-    
-    receive() external payable {}
-
-    fallback() external payable {
-        revert();
     }
 
     function makeNewAccount() public {
