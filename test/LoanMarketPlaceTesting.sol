@@ -24,16 +24,23 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     address borrowTokenAddress;
     address collateralTokenAddress;
 
+    uint256 constant defaultBorrowAmount = 100e18;
+    uint256 constant defaultCollateralAmount = 100e18;
+    uint256 constant defaultLoanTime = 30 days;
+
 
     function setUp() public {
         vm.startPrank(admin);
         loanMarketPlace = new LoanMarketPlace();
 
-        TokenToBeBorrowed = new MockToken(100e18, "Borrow Token", "BT");
+        TokenToBeBorrowed = new MockToken(1000000e18, "Borrow Token", "BT");
         borrowTokenAddress = address(TokenToBeBorrowed);
 
-        CollateralToken = new MockToken(100e18, "Collateral Token", "CT");
+        CollateralToken = new MockToken(1000000e18, "Collateral Token", "CT");
         collateralTokenAddress = address(CollateralToken);
+
+        TokenToBeBorrowed.transfer(lender, 1000e18);
+        CollateralToken.transfer(borrower, 1000e18);
 
         vm.stopPrank();
     }
@@ -85,9 +92,68 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace.makeNewAccount();
     }
 
-    function test_fuzzUsersCreateAccounts(uint256 accounts) public {
+    function test_makeNewAccounts(uint256 numberOfUsers) public {
+        numberOfUsers = bound(numberOfUsers, 1, 1000); // Bound the number of users to be between 1 and 1000
+
+        for (uint256 i = 0; i < numberOfUsers; i++) {
+            address user = address(uint160(uint256(keccak256(abi.encode(i)))));
+            vm.startPrank(user);
+            loanMarketPlace.makeNewAccount();
+            vm.stopPrank();
+            
+            // Assert that the account was created correctly
+            AccountLibrary.Account memory account = loanMarketPlace.getAccount(user);
+            assertEq(account.wallet, user);
+            assertEq(account.accountId, i);
+        }
+    }
+
+    function test_submitloanRequest() public borrowerMakesAccount adminAddsCollateralTokenToApprovedCollateralTokens{
+        vm.prank(borrower);
+        uint256 testingLoanId = loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+
+        // Get the loan and check its status
+        AccountLibrary.Loan memory loan = loanMarketPlace.getLoan(testingLoanId);
+        assertEq(uint(loan.loanStatus), uint(AccountLibrary.LoanStatus.Proposed));
+  
+        // Check if the loan status matches the expected status
+        assertTrue(loan.loanStatus == AccountLibrary.LoanStatus.Proposed, "Loan status should be Proposed"); 
+        assertEq(testingLoanId, loan.loanId);
+        assertEq(loan.borrower, borrower);
+        assertEq(loan.amount, defaultBorrowAmount);
+        assertEq(loan.loanToken, borrowTokenAddress);
+        assertEq(loan.creationTimeStamp, block.timestamp);
+        assertEq(loan.duration, defaultLoanTime);
+        assertEq(loan.collateralToken, collateralTokenAddress);
+        assertEq(loan.collateralAmount, defaultCollateralAmount);
+        assertEq(loan.bids, 0);
+
+        AccountLibrary.Bid memory bid = AccountLibrary.defaultBid();
+        assertEq(loan.bid.bidId, bid.bidId);
+        assertEq(loan.bid.loanId, bid.loanId);
+        assertEq(loan.bid.lender, bid.lender);
+        assertEq(loan.bid.APRoffer, bid.APRoffer);
+        assertEq(loan.bid.timeStamp, bid.timeStamp);
+        assertFalse(loan.bid.accepted);
+    }
+
+    function test_submitloanWithoutAccount() public adminAddsCollateralTokenToApprovedCollateralTokens{
+        vm.prank(borrower);
+        vm.expectRevert();
+        loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+    }
+
+    function test_bidSubmission() public 
+    adminAddsCollateralTokenToApprovedCollateralTokens,
+    borrowerMakesAccount,
+    lenderMakesAccount, 
+    borrowerSubmitsBasicLoan 
+    {   
 
     }
+
+
+
 
     //------------------MODIFIERS----------------------------------------------
     modifier adminAddsCollateralTokenToApprovedCollateralTokens() {
@@ -105,6 +171,12 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     modifier lenderMakesAccount() {
         vm.prank(lender);
         loanMarketPlace.makeNewAccount();
+        _;
+    }
+
+    modifier borrowerSubmitsBasicLoan() {
+        vm.prank(borrower);
+        loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
         _;
     }
     //------------------MODIFIERS----------------------------------------------

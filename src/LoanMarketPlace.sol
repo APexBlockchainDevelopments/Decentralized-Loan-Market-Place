@@ -80,7 +80,10 @@ contract LoanMarketPlace is Ownable{
         address tokenToBorrow, 
         uint256 duration, 
         address collateralToken,
-        uint256 collateralAmount) public {
+        uint256 collateralAmount) 
+        public 
+        returns(uint256)
+        {
         
         require(accountExists[msg.sender], "Account does not exist");
         require(approvedCollateralTokens[collateralToken], "Collateral Token Not Approved");
@@ -100,9 +103,7 @@ contract LoanMarketPlace is Ownable{
         newLoan.bid = AccountLibrary.defaultBid();
         loanIds++;
 
-
-        IERC20(newLoan.collateralToken).approve(address(this), newLoan.collateralAmount);//approve tokens at this point??
-        //What if this is ETH?
+        return newLoan.loanId;
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
@@ -126,8 +127,8 @@ contract LoanMarketPlace is Ownable{
         loans[_loanId].bids++;   // needs gas effecientcy rewrite
         loanOffers[_loanId][currentLoans] = newBid;
 
-        
-        IERC20(loans[_loanId].loanToken).approve(address(this), loans[_loanId].amount);//approve tokens at this point??
+
+
     }
 
     function selectBid(uint256 _loanId, uint256 _selectedBid) public  {
@@ -200,7 +201,7 @@ contract LoanMarketPlace is Ownable{
         return accounts[accountAddress];
     }
 
-    function getProposedLoan(uint256 loanId) public view returns(AccountLibrary.Loan memory){
+    function getLoan(uint256 loanId) public view returns(AccountLibrary.Loan memory){
         return loans[loanId];
     }
 
