@@ -177,6 +177,29 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
     }
 
+    function test_lenderCantBidOnLoanThatDoesntExist() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    public {
+        vm.prank(lender);
+        vm.expectRevert("Loan Does not exist");
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    }
+
+    
+    function test_lenderCantBidOnLoanAfterBiddingPeroid() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    public {
+        vm.prank(lender);
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.expectRevert("Bidding period for this loan has ended");
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    }
+
 
 
 
@@ -202,6 +225,12 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     modifier borrowerSubmitsBasicLoan() {
         vm.prank(borrower);
         loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+        _;
+    }
+
+    modifier lenderSubmitsBasicBid() {
+        vm.prank(lender);
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
         _;
     }
     //------------------MODIFIERS----------------------------------------------
