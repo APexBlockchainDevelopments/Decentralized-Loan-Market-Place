@@ -54,7 +54,7 @@ library Library {
 
     struct Bid{
         uint256 bidId;
-        uint256 loanId;
+        uint256 loanId;  //is this necessary for gas?
         address lender;
         uint256 APRoffer;  // APR in basis points (e.g., 500 for 5%)
         uint256 timeStamp;

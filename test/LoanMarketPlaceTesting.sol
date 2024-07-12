@@ -167,6 +167,16 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertEq(bid.accepted, false);
     }
 
+    function test_nonUserCantCreateBid() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    borrowerSubmitsBasicLoan 
+    public {
+        vm.prank(lender);
+        vm.expectRevert("Account does not exist");
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    }
+
 
 
 
