@@ -27,6 +27,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     uint256 constant defaultBorrowAmount = 100e18;
     uint256 constant defaultCollateralAmount = 100e18;
     uint256 constant defaultLoanTime = 30 days;
+    uint256 constant defaultAPROffer = 1000;
 
 
     function setUp() public {
@@ -150,11 +151,20 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     borrowerSubmitsBasicLoan 
     {   
         vm.prank(lender);
-        loanMarketPlace.createBid(0, 1000); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
         
         Library.Loan memory firstLoan = loanMarketPlace.getLoan(0);
-        //get the struct from the mapping
-        //test it against default bid
+        
+        assertEq(firstLoan.bids, 1);
+        
+        Library.Bid memory bid = loanMarketPlace.getBid(0, 0);  //Getting Bid from LoanMarketplace Contract
+        
+        assertEq(bid.bidId, 0);
+        assertEq(bid.loanId, 0);
+        assertEq(bid.lender, lender);
+        assertEq(bid.APRoffer, defaultAPROffer);
+        assertEq(bid.timeStamp, block.timestamp);
+        assertEq(bid.accepted, false);
     }
 
 

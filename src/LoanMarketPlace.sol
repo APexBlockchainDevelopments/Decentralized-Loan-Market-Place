@@ -202,6 +202,10 @@ contract LoanMarketPlace is Ownable{
         return loans[loanId];
     }
 
+    function getBid(uint256 loanId, uint256 bidId) public view returns(Library.Bid memory){
+        return loanOffers[loanId][bidId];
+    }
+
     function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
         return approvedCollateralTokens[_token];
     }
