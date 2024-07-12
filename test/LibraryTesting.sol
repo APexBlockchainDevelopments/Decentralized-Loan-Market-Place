@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.20;
 
-import {AccountLibrary} from "../src/libraries/Library.sol";
+import {Library} from "../src/libraries/Library.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 
@@ -17,7 +17,7 @@ contract LibraryTesting is StdCheats, Test{
     }
 
     function test_LibraryDefaultBid() public pure{
-        AccountLibrary.Bid memory newBid = AccountLibrary.Bid({
+        Library.Bid memory newBid = Library.Bid({
             bidId: 0,
             loanId: 0,
             lender: address(0),
@@ -26,17 +26,17 @@ contract LibraryTesting is StdCheats, Test{
             accepted: false
         });
 
-        assertEq(newBid.bidId, AccountLibrary.defaultBid().bidId);
-        assertEq(newBid.loanId, AccountLibrary.defaultBid().loanId);
-        assertEq(newBid.lender, AccountLibrary.defaultBid().lender);
-        assertEq(newBid.APRoffer, AccountLibrary.defaultBid().APRoffer);
-        assertEq(newBid.timeStamp, AccountLibrary.defaultBid().timeStamp);
-        assertEq(newBid.accepted, AccountLibrary.defaultBid().accepted);
+        assertEq(newBid.bidId, Library.defaultBid().bidId);
+        assertEq(newBid.loanId, Library.defaultBid().loanId);
+        assertEq(newBid.lender, Library.defaultBid().lender);
+        assertEq(newBid.APRoffer, Library.defaultBid().APRoffer);
+        assertEq(newBid.timeStamp, Library.defaultBid().timeStamp);
+        assertEq(newBid.accepted, Library.defaultBid().accepted);
     }
 
     function test_LoanStruct() public view {
-        AccountLibrary.Loan memory loan = AccountLibrary.Loan({
-            loanStatus: AccountLibrary.LoanStatus.Proposed,
+        Library.Loan memory loan = Library.Loan({
+            loanStatus: Library.LoanStatus.Proposed,
             loanId: 1,
             borrower: address(0x123),
             loanToken: address(0x456),
@@ -46,10 +46,10 @@ contract LibraryTesting is StdCheats, Test{
             collateralToken: address(0x789),
             collateralAmount: 50,
             bids: 0,
-            bid: AccountLibrary.defaultBid()
+            bid: Library.defaultBid()
         });
 
-        assertEq(uint(loan.loanStatus), uint(AccountLibrary.LoanStatus.Proposed));
+        assertEq(uint(loan.loanStatus), uint(Library.LoanStatus.Proposed));
         assertEq(loan.loanId, 1);
         assertEq(loan.borrower, address(0x123));
         assertEq(loan.loanToken, address(0x456));
@@ -59,11 +59,11 @@ contract LibraryTesting is StdCheats, Test{
         assertEq(loan.collateralToken, address(0x789));
         assertEq(loan.collateralAmount, 50);
         assertEq(loan.bids, 0);
-        assertEq(loan.bid.bidId, AccountLibrary.defaultBid().bidId);
+        assertEq(loan.bid.bidId, Library.defaultBid().bidId);
     }
 
     function test_AccountStruct() public view {
-        AccountLibrary.Account memory account = AccountLibrary.Account({
+        Library.Account memory account = Library.Account({
             wallet: address(0x123),
             accountId: 1,
             creationTimeStamp: block.timestamp,

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.20;
 
-import {AccountLibrary} from "../src/libraries/Library.sol";
+import {Library} from "../src/libraries/Library.sol";
 import {LoanMarketPlace} from "../src/LoanMarketPlace.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
@@ -72,7 +72,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         vm.prank(borrower);
         loanMarketPlace.makeNewAccount();
 
-        AccountLibrary.Account memory newAccount = loanMarketPlace.getAccount(borrower);
+        Library.Account memory newAccount = loanMarketPlace.getAccount(borrower);
         
         assertEq(newAccount.wallet, borrower);
         assertEq(newAccount.accountId, 0);
@@ -102,7 +102,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
             vm.stopPrank();
             
             // Assert that the account was created correctly
-            AccountLibrary.Account memory account = loanMarketPlace.getAccount(user);
+            Library.Account memory account = loanMarketPlace.getAccount(user);
             assertEq(account.wallet, user);
             assertEq(account.accountId, i);
         }
@@ -113,11 +113,11 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         uint256 testingLoanId = loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
 
         // Get the loan and check its status
-        AccountLibrary.Loan memory loan = loanMarketPlace.getLoan(testingLoanId);
-        assertEq(uint(loan.loanStatus), uint(AccountLibrary.LoanStatus.Proposed));
+        Library.Loan memory loan = loanMarketPlace.getLoan(testingLoanId);
+        assertEq(uint(loan.loanStatus), uint(Library.LoanStatus.Proposed));
   
         // Check if the loan status matches the expected status
-        assertTrue(loan.loanStatus == AccountLibrary.LoanStatus.Proposed, "Loan status should be Proposed"); 
+        assertTrue(loan.loanStatus == Library.LoanStatus.Proposed, "Loan status should be Proposed"); 
         assertEq(testingLoanId, loan.loanId);
         assertEq(loan.borrower, borrower);
         assertEq(loan.amount, defaultBorrowAmount);
@@ -128,7 +128,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertEq(loan.collateralAmount, defaultCollateralAmount);
         assertEq(loan.bids, 0);
 
-        AccountLibrary.Bid memory bid = AccountLibrary.defaultBid();
+        Library.Bid memory bid = Library.defaultBid();
         assertEq(loan.bid.bidId, bid.bidId);
         assertEq(loan.bid.loanId, bid.loanId);
         assertEq(loan.bid.lender, bid.lender);
@@ -144,12 +144,17 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     }
 
     function test_bidSubmission() public 
-    adminAddsCollateralTokenToApprovedCollateralTokens,
-    borrowerMakesAccount,
-    lenderMakesAccount, 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
     borrowerSubmitsBasicLoan 
     {   
-
+        vm.prank(lender);
+        loanMarketPlace.createBid(0, 1000); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+        
+        Library.Loan memory firstLoan = loanMarketPlace.getLoan(0);
+        //get the struct from the mapping
+        //test it against default bid
     }
 
 

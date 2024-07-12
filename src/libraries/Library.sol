@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 
-library AccountLibrary {
+library Library {
 
     struct Account {
         address wallet;  //Maybe change name of variable

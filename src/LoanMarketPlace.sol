@@ -24,7 +24,7 @@ pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AccountLibrary} from "./libraries/Library.sol";
+import {Library} from "./libraries/Library.sol";
 
 contract LoanMarketPlace is Ownable{
 
@@ -33,10 +33,10 @@ contract LoanMarketPlace is Ownable{
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
-    mapping(address => AccountLibrary.Account) private accounts; // Mapping to track existence of proposedLoans
+    mapping(address => Library.Account) private accounts; // Mapping to track existence of proposedLoans
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
-    mapping(uint256 => AccountLibrary.Loan) private loans; // Mapping to track existence of proposedLoans    
-    mapping(uint256 loanId => mapping(uint256 bidId=> AccountLibrary.Bid)) private loanOffers; // Create a separate mapping for offers
+    mapping(uint256 => Library.Loan) private loans; // Mapping to track existence of proposedLoans    
+    mapping(uint256 loanId => mapping(uint256 bidId=> Library.Bid)) private loanOffers; // Create a separate mapping for offers
 
     constructor() Ownable(msg.sender){}
 
@@ -56,7 +56,7 @@ contract LoanMarketPlace is Ownable{
 
     function makeNewAccount() public {
         require(!accountExists[msg.sender], "Account already exists");
-        AccountLibrary.Account memory newAccount = AccountLibrary.Account({
+        Library.Account memory newAccount = Library.Account({
             wallet : msg.sender,
             accountId : accountIds,
             creationTimeStamp : block.timestamp,
@@ -90,8 +90,8 @@ contract LoanMarketPlace is Ownable{
 
         require(amount != 0, "Loan Amount cannot be zero");
 
-        AccountLibrary.Loan storage newLoan = loans[loanIds]; //optimize this gas usage here, use memory then push to storage
-        newLoan.loanStatus = AccountLibrary.LoanStatus.Proposed;
+        Library.Loan storage newLoan = loans[loanIds]; //optimize this gas usage here, use memory then push to storage
+        newLoan.loanStatus = Library.LoanStatus.Proposed;
         newLoan.loanId = loanIds;
         newLoan.borrower = msg.sender;
         newLoan.loanToken = tokenToBorrow;
@@ -100,7 +100,7 @@ contract LoanMarketPlace is Ownable{
         newLoan.duration = duration;
         newLoan.collateralToken = collateralToken;  
         newLoan.collateralAmount = collateralAmount; //Potentially Collateral Amount could be zero, however that is up to the Lenders to decide to lend to someone with no collateral upfront
-        newLoan.bid = AccountLibrary.defaultBid();
+        newLoan.bid = Library.defaultBid();
         loanIds++;
 
         return newLoan.loanId;
@@ -115,7 +115,7 @@ contract LoanMarketPlace is Ownable{
         require(block.timestamp <= (proposedLoanCreationDate + 7 days), "Bidding period for this loan has ended"); //check if bidding peroid ongoing
         
         //create bid and add to mapping
-        AccountLibrary.Bid memory newBid = AccountLibrary.Bid({
+        Library.Bid memory newBid = Library.Bid({
             bidId : currentLoans,
             loanId : _loanId,
             lender : msg.sender,
@@ -126,20 +126,17 @@ contract LoanMarketPlace is Ownable{
 
         loans[_loanId].bids++;   // needs gas effecientcy rewrite
         loanOffers[_loanId][currentLoans] = newBid;
-
-
-
     }
 
     function selectBid(uint256 _loanId, uint256 _selectedBid) public  {
-        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
         require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
         require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
         
 
-        AccountLibrary.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
+        Library.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
         require(selectedBid.lender != address(0), "Bid does not exist"); //make sure bid is legit, borrower can't select bid that doesn't exist
 
         selectedLoan.bid = selectedBid;
@@ -156,10 +153,10 @@ contract LoanMarketPlace is Ownable{
     }
 
     function repayLoan(uint256 _loanId) public {
-        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(block.timestamp <= selectedLoan.creationTimeStamp + selectedLoan.duration, "Loan repayment period has ended");
-        require(selectedLoan.loanStatus == AccountLibrary.LoanStatus.InProgress, "Loan is not in Progress");
+        require(selectedLoan.loanStatus == Library.LoanStatus.InProgress, "Loan is not in Progress");
 
         //Not necessary?
         //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
@@ -167,18 +164,18 @@ contract LoanMarketPlace is Ownable{
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
         IERC20(selectedLoan.loanToken).transfer(selectedLoan.bid.lender, totalAmountToBeRepaid); // amount + APR
         //Check to see if loan is enough
-        selectedLoan.loanStatus = AccountLibrary.LoanStatus.Repaid;
+        selectedLoan.loanStatus = Library.LoanStatus.Repaid;
         //update account stats
 
     }
 
     function claimCollateral(uint256 _loanId) public {
         //Lender can claim collateral if loan isn't repaid in time
-        AccountLibrary.Loan storage  selectedLoan = loans[_loanId];
+        Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.creationTimeStamp + 14 days >= block.timestamp, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
 
-        selectedLoan.loanStatus = AccountLibrary.LoanStatus.Defaulted;
+        selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
 
         IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
 
@@ -197,11 +194,11 @@ contract LoanMarketPlace is Ownable{
 
 
     ////Getter Functions/////
-    function getAccount(address accountAddress) public view returns(AccountLibrary.Account memory){
+    function getAccount(address accountAddress) public view returns(Library.Account memory){
         return accounts[accountAddress];
     }
 
-    function getLoan(uint256 loanId) public view returns(AccountLibrary.Loan memory){
+    function getLoan(uint256 loanId) public view returns(Library.Loan memory){
         return loans[loanId];
     }
 
@@ -209,11 +206,11 @@ contract LoanMarketPlace is Ownable{
         return approvedCollateralTokens[_token];
     }
 
-    function getAllBidsForProposedLoan(uint256 _loanId) public view returns(AccountLibrary.Bid[] memory){
+    function getAllBidsForProposedLoan(uint256 _loanId) public view returns(Library.Bid[] memory){
         //Get number of bids for proposedLoan
         //Desparately needs gas optimziation
-        AccountLibrary.Bid[] memory bids;
-        AccountLibrary.Loan memory proposedLoan = loans[_loanId];
+        Library.Bid[] memory bids;
+        Library.Loan memory proposedLoan = loans[_loanId];
 
         if(proposedLoan.bids == 0){
             return bids;
