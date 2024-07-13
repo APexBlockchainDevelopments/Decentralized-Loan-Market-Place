@@ -200,10 +200,71 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
     }
 
+    function test_userCanSelectBid() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        uint256 borrowTokenBorrowerBalanceBefore = TokenToBeBorrowed.balanceOf(borrower);
+        uint256 borrowTokenLenderBalanceBefore = TokenToBeBorrowed.balanceOf(lender);
+        uint256 collateralTokenBorrowerBalanceBefore = CollateralToken.balanceOf(borrower);
+        uint256 collateralTokenEscrowBalanceBefore = CollateralToken.balanceOf(address(loanMarketPlace));
+        
+        
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.prank(lender);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
+        
+        vm.startPrank(borrower);
+        CollateralToken.approve(address(loanMarketPlace), defaultCollateralAmount);
+        loanMarketPlace.selectBid(0, 0);
+        vm.stopPrank();
+
+        Library.Bid memory bid = loanMarketPlace.getBid(0, 0);
+        Library.Bid memory selectedBid = loanMarketPlace.getSelectedBid(0);
+
+        //making sure selected bid is actually the same bid as chosen by the selectBid function
+        assertEq(bid.bidId, selectedBid.bidId);
+        assertEq(bid.loanId, selectedBid.loanId);
+        assertEq(bid.lender, selectedBid.lender);
+        assertEq(bid.APRoffer, selectedBid.APRoffer);
+        assertEq(bid.timeStamp, selectedBid.timeStamp);
+        assertEq(bid.accepted, selectedBid.accepted);
+
+        uint256 borrowTokenBorrowerBalanceAfter = TokenToBeBorrowed.balanceOf(borrower);
+        uint256 borrowTokenLenderBalanceAfter = TokenToBeBorrowed.balanceOf(lender);
+        uint256 collateralTokenBorrowerBalanceAfter = CollateralToken.balanceOf(borrower);
+        uint256 collateralTokenEscrowBalanceAfter = CollateralToken.balanceOf(address(loanMarketPlace));
+
+        assertEq(borrowTokenBorrowerBalanceBefore + defaultBorrowAmount, borrowTokenBorrowerBalanceAfter);
+        assertEq(borrowTokenLenderBalanceBefore - defaultBorrowAmount, borrowTokenLenderBalanceAfter);
+        assertEq(collateralTokenBorrowerBalanceBefore - defaultCollateralAmount, collateralTokenBorrowerBalanceAfter);
+        assertEq(collateralTokenEscrowBalanceBefore + defaultCollateralAmount, collateralTokenEscrowBalanceAfter);
+    }
+
+    function test_randomCantSelectLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.prank(random);
+        vm.expectRevert("You are not the borrower of this loan");
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
+
+    }
 
 
+    //write tests if lender removes approval
 
-    //------------------MODIFIERS----------------------------------------------
+
+    /*//////////////////////////////////////////////////////////////
+                               MODIFIERES
+    //////////////////////////////////////////////////////////////*/
     modifier adminAddsCollateralTokenToApprovedCollateralTokens() {
         vm.prank(admin);
         loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
@@ -233,7 +294,6 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
         _;
     }
-    //------------------MODIFIERS----------------------------------------------
 
 
 }

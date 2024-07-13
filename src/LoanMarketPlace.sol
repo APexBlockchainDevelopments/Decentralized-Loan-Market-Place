@@ -128,26 +128,29 @@ contract LoanMarketPlace is Ownable{
         loanOffers[_loanId][currentLoans] = newBid;
     }
 
+
+    //function to withdraw bid??
+
     function selectBid(uint256 _loanId, uint256 _selectedBid) public  {
         Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
-        require(selectedLoan.creationTimeStamp + 7 days >= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
-        require(selectedLoan.creationTimeStamp + 14 days <= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
+        require(selectedLoan.creationTimeStamp + 7 days <= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
+        require(selectedLoan.creationTimeStamp + 14 days >= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
         
 
         Library.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
         require(selectedBid.lender != address(0), "Bid does not exist"); //make sure bid is legit, borrower can't select bid that doesn't exist
 
-        selectedLoan.bid = selectedBid;
         selectedBid.accepted = true;
+        selectedLoan.bid = selectedBid;
         
         //update user stats
 
         //transfer tokens and collateral
-        IERC20(selectedLoan.loanToken).transfer(selectedLoan.borrower, selectedLoan.amount);
+        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
         //Escrow Collateral
-        IERC20(selectedLoan.collateralToken).transfer(address(this), selectedLoan.collateralAmount);
+        IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
 
         //Update Account Data
     }
@@ -224,6 +227,10 @@ contract LoanMarketPlace is Ownable{
             }
             return bids;
         }
+    }
+
+    function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
+        return loans[_loandId].bid;
     }
 
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
