@@ -254,12 +254,51 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
         vm.prank(random);
         vm.expectRevert("You are not the borrower of this loan");
-        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
-
+        loanMarketPlace.selectBid(0, 0);
     }
 
 
     //write tests if lender removes approval
+
+
+    function test_userSelectBidBeforeBiddingIsOver() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.expectRevert("Cannot select bid until bidding process is over");
+        loanMarketPlace.selectBid(0, 0);
+    }
+
+    function test_userSelectBidAfterSelectionPeroidIsUp() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.warp(block.timestamp + 14 days + 1); // Warp time by 7 days
+        vm.expectRevert("Bidding peroid has ended, this loan is dead.");
+        loanMarketPlace.selectBid(0, 0);
+    }
+
+    function test_borrowerSelectsBidThatDoesntExist() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.expectRevert("Bid does not exist");
+        loanMarketPlace.selectBid(0, 1);
+    }
+
 
 
     /*//////////////////////////////////////////////////////////////

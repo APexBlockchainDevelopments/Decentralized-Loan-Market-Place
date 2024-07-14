@@ -28,8 +28,8 @@ import {Library} from "./libraries/Library.sol";
 
 contract LoanMarketPlace is Ownable{
 
-    uint256 private accountIds;
-    uint256 private loanIds;
+    uint256 private accountIds; //Used to keep track of Accounts
+    uint256 private loanIds;  //Used to keep track of loans
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
@@ -232,6 +232,9 @@ contract LoanMarketPlace is Ownable{
     function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
         return loans[_loandId].bid;
     }
+
+    //function for getting all loans based on account
+    //function for getting all bids based on account ..etc
 
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
 }
