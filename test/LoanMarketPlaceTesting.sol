@@ -51,6 +51,12 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertEq(loanMarketPlace.owner(), admin);
     }
 
+    function test_sendEthToContract() public {
+        uint256 balanceBefore = address(loanMarketPlace).balance;
+        vm.deal(address(loanMarketPlace), 10e18);
+        assertEq(balanceBefore + 10e18, address(loanMarketPlace).balance);
+    }
+
     function test_ownerCanAddCollateralToken() public {
         assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
 

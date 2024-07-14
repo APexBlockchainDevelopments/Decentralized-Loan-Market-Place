@@ -42,9 +42,7 @@ contract LoanMarketPlace is Ownable{
 
     receive() external payable {}
 
-    fallback() external payable {
-        revert();
-    }
+    fallback() external payable {revert();}
 
     
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
@@ -195,8 +193,6 @@ contract LoanMarketPlace is Ownable{
         uint interest = (_amount * _apr * _duration) / (365 days * 10000);
         return interest;
     }
-
-
 
     ////Getter Functions/////
     function getAccount(address accountAddress) public view returns(Library.Account memory){
