@@ -144,6 +144,7 @@ contract LoanMarketPlace is Ownable{
 
         selectedBid.accepted = true;
         selectedLoan.bid = selectedBid;
+        selectedLoan.loanStatus = Library.LoanStatus.InProgress;
         
         //update user stats
 
@@ -151,6 +152,8 @@ contract LoanMarketPlace is Ownable{
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
         //Escrow Collateral
         IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
+
+        ///What happens if approval is recalled? Ding their account???
 
         //Update Account Data
     }
@@ -165,30 +168,29 @@ contract LoanMarketPlace is Ownable{
         //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
         //what do if tokens are transferred out side of this contract? 
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
-        IERC20(selectedLoan.loanToken).transfer(selectedLoan.bid.lender, totalAmountToBeRepaid); // amount + APR
+        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid); // amount + APR
+
+       
+        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount);  //need to pay back collatearl to borrower
         //Check to see if loan is enough
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
-        //update account stats
 
     }
 
     function claimCollateral(uint256 _loanId) public {
         //Lender can claim collateral if loan isn't repaid in time
         Library.Loan storage  selectedLoan = loans[_loanId];
-        require(selectedLoan.creationTimeStamp + 14 days >= block.timestamp, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
+        require(block.timestamp >= selectedLoan.creationTimeStamp + selectedLoan.duration, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
 
         selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
 
         IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
-
-        //Update account statuses
     }
 
 
-    //Internal functions
     //@params _duration is in seconds
-    function calculateInterest(uint256 _amount, uint256 _apr, uint256 _duration) internal pure returns (uint) {
+    function calculateInterest(uint256 _amount, uint256 _apr, uint256 _duration) public pure returns (uint) {
         // Interest = loan amount * APR * (loan duration / 365 days) / 10000 (to account for basis points)
         uint interest = (_amount * _apr * _duration) / (365 days * 10000);
         return interest;

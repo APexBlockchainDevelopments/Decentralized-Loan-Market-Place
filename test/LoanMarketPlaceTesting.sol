@@ -42,6 +42,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
         TokenToBeBorrowed.transfer(lender, 1000e18);
         CollateralToken.transfer(borrower, 1000e18);
+        TokenToBeBorrowed.transfer(borrower, 1000e18);
 
         vm.stopPrank();
     }
@@ -242,6 +243,10 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertEq(borrowTokenLenderBalanceBefore - defaultBorrowAmount, borrowTokenLenderBalanceAfter);
         assertEq(collateralTokenBorrowerBalanceBefore - defaultCollateralAmount, collateralTokenBorrowerBalanceAfter);
         assertEq(collateralTokenEscrowBalanceBefore + defaultCollateralAmount, collateralTokenEscrowBalanceAfter);
+
+        Library.Loan memory loan = loanMarketPlace.getLoan(0);
+
+        assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.InProgress));
     }
 
     function test_randomCantSelectLoan() 
@@ -301,6 +306,193 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
 
 
+    function test_borrowerRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        //starting values
+
+        //Borrow Token
+        uint256 borrowerBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
+        uint256 lenderBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
+        uint256 marketPlaceBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
+
+        //Collateral Token
+        uint256 borrowerCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+        uint256 totalPaymentAmount = defaultBorrowAmount + interestAmount;
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), totalPaymentAmount);
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
+
+        Library.Loan memory loan = loanMarketPlace.getLoan(0);
+        assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Repaid));
+
+
+        //Finishing values
+
+        //Borrow Token
+        uint256 borrowerBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
+        uint256 lenderBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
+        uint256 marketPlaceBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
+
+        //Collateral Token
+        uint256 borrowerCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        
+
+        //Asserts
+        //Borrowed Token
+        assertEq(borrowerBalanceBeforeRepayment - totalPaymentAmount, borrowerBalanceAfterRepayment);
+        assertEq(lenderBalanceBeforeRepayment + totalPaymentAmount, lenderBalanceAfterRepayment);
+        assertEq(marketPlaceBalanceBeforeRepayment, marketPlaceBalanceAfterRepayment);
+        //Collateral Token
+        assertEq(borrowerCollateralBalanceBeforeRepayment + defaultCollateralAmount, borrowerCollateralBalanceAfterRepayment);
+        assertEq(lenderCollateralBalanceBeforeRepayment, lenderCollateralBalanceAfterRepayment);
+        assertEq(marketCollateralPlaceBalanceBeforeRepayment - defaultCollateralAmount, marketCollateralPlaceBalanceAfterRepayment);
+    }
+
+    function test_nonBorrowerCantRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.prank(random);
+        vm.expectRevert("You are not the borrower of this loan");
+        loanMarketPlace.repayLoan(0);
+    }
+
+
+    function test_borrowerCantRepayAfterLoanHasEnded() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
+        vm.warp(block.timestamp + 30 days + 1); // Warp time by 7 days
+        vm.expectRevert("Loan repayment period has ended");
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
+    }
+
+    function test_cantRepayIfNotInProgress() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    //borrowerSelectsBasicBid  - this commenting out because it sets the loan to inprogress. We're testing to see if they can repay a loan that is not in progress
+    public {
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
+        vm.expectRevert("Loan is not in Progress");
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
+        
+    
+    }
+
+    function test_claimCollateral() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        //starting values
+
+        //Collateral Token
+        uint256 borrowerCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+
+        vm.warp(block.timestamp + 30 days + 1);
+        vm.prank(lender);
+        loanMarketPlace.claimCollateral(0);
+
+        Library.Loan memory loan = loanMarketPlace.getLoan(0);
+        assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Defaulted));
+
+
+        //Finishing values
+
+        //Collateral Token
+        uint256 borrowerCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceAfterDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        
+
+        //Asserts
+        //Collateral Token
+        assertEq(borrowerCollateralBalanceBeforeDefault, borrowerCollateralBalanceAfterDefault);
+        assertEq(lenderCollateralBalanceBeforeDefault + defaultCollateralAmount, lenderCollateralBalanceAfterDefault);
+        assertEq(marketCollateralPlaceBalanceBeforeDefault - defaultCollateralAmount, marketCollateralPlaceBalanceAfterDefault);
+    }
+
+    function test_nonLenderCantRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.prank(random);
+        vm.expectRevert("You are not the lender of this loan");
+        loanMarketPlace.claimCollateral(0);
+    }
+
+
+    function test_lenderCantClaimUntilDurationIsOver() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.startPrank(lender);
+        vm.expectRevert("Cannot claim collertal until duration of loan is over.");
+        loanMarketPlace.claimCollateral(0);
+        vm.stopPrank();
+    }
+
+
     /*//////////////////////////////////////////////////////////////
                                MODIFIERES
     //////////////////////////////////////////////////////////////*/
@@ -331,6 +523,25 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     modifier lenderSubmitsBasicBid() {
         vm.prank(lender);
         loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+        _;
+    }
+
+    modifier borrowerApprovedCollateral() {
+        vm.prank(borrower);
+        CollateralToken.approve(address(loanMarketPlace), defaultCollateralAmount);
+        _;
+    }
+
+    modifier lenderApprovedCollateral() {
+        vm.prank(lender);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
+        _;
+    }
+
+    modifier borrowerSelectsBasicBid() {
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.prank(borrower);
+        loanMarketPlace.selectBid(0, 0);
         _;
     }
 
