@@ -143,12 +143,9 @@ contract LoanMarketPlace is Ownable{
         selectedBid.accepted = true;
         selectedLoan.bid = selectedBid;
         selectedLoan.loanStatus = Library.LoanStatus.InProgress;
-        
-        //update user stats
 
-        //transfer tokens and collateral
+        
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
-        //Escrow Collateral
         IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
 
         ///What happens if approval is recalled? Ding their account???
@@ -217,14 +214,11 @@ contract LoanMarketPlace is Ownable{
         Library.Bid[] memory bids;
         Library.Loan memory proposedLoan = loans[_loanId];
 
-        if(proposedLoan.bids == 0){
-            return bids;
-        } else {
-            for(uint256 i; i< proposedLoan.bids; i++){
-                bids[i] = loanOffers[_loanId][i];
-            }
-            return bids;
+        for(uint256 i; i< proposedLoan.bids; i++){
+            bids[i] = loanOffers[_loanId][i];
         }
+        
+        return bids;
     }
 
     function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
@@ -234,5 +228,5 @@ contract LoanMarketPlace is Ownable{
     //function for getting all loans based on account
     //function for getting all bids based on account ..etc
 
-    //build these out more just for individual viewing functions.... for example get loan amount based on loan ID
+    //build these out more just for individual viewing functions.... for example get loan amount based on loan ID....perhaps interface?
 }
