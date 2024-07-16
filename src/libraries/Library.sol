@@ -40,6 +40,7 @@ library Library {
         uint256 amount;
         uint256 creationTimeStamp;
         uint256 duration;
+        uint256 startTime;
 
         address collateralToken;
         uint256 collateralAmount;

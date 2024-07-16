@@ -399,7 +399,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
         vm.startPrank(borrower);
         TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
-        vm.warp(block.timestamp + 30 days + 1); // Warp time by 7 days
+        vm.warp(block.timestamp + 60 days + 1); // Warp time by duration + bidding peroid
         vm.expectRevert("Loan repayment period has ended");
         loanMarketPlace.repayLoan(0);
         vm.stopPrank();
@@ -443,7 +443,7 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         uint256 lenderCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(lender);
         uint256 marketCollateralPlaceBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
 
-        vm.warp(block.timestamp + 30 days + 1);
+        vm.warp(block.timestamp + 60 days + 1);
         vm.prank(lender);
         loanMarketPlace.claimCollateral(0);
 

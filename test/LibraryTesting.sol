@@ -42,6 +42,7 @@ contract LibraryTesting is StdCheats, Test{
             loanToken: address(0x456),
             amount: 100,
             creationTimeStamp: block.timestamp,
+            startTime: 0,
             duration: 30 days,
             collateralToken: address(0x789),
             collateralAmount: 50,
@@ -56,6 +57,7 @@ contract LibraryTesting is StdCheats, Test{
         assertEq(loan.amount, 100);
         assertEq(loan.creationTimeStamp, block.timestamp);
         assertEq(loan.duration, 30 days);
+        assertEq(loan.startTime, 0);
         assertEq(loan.collateralToken, address(0x789));
         assertEq(loan.collateralAmount, 50);
         assertEq(loan.bids, 0);

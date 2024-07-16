@@ -44,9 +44,13 @@ contract LoanMarketPlace is Ownable{
 
     fallback() external payable {revert();}
 
-    
+    /**
+     * @param _token This is the name of the item to be associated with the item for sale
+     * @param _approval Description of the item for sale
+     * @dev This function allows users to add items to the marketplace. 
+     */
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
-        //Possible check to see if address is ERC-20?
+
         //This function doubles as a blacklist function if a token has some type of issues allowing the admins to disable it or enable it if it's deemed fit
         approvedCollateralTokens[_token] = _approval;
 
@@ -85,10 +89,10 @@ contract LoanMarketPlace is Ownable{
         
         require(accountExists[msg.sender], "Account does not exist");
         require(approvedCollateralTokens[collateralToken], "Collateral Token Not Approved");
-
+        require(duration > 3600, "Loan Duration too Short");
         require(amount != 0, "Loan Amount cannot be zero");
 
-        Library.Loan storage newLoan = loans[loanIds]; //optimize this gas usage here, use memory then push to storage
+        Library.Loan memory newLoan; 
         newLoan.loanStatus = Library.LoanStatus.Proposed;
         newLoan.loanId = loanIds;
         newLoan.borrower = msg.sender;
@@ -96,21 +100,24 @@ contract LoanMarketPlace is Ownable{
         newLoan.amount = amount;
         newLoan.creationTimeStamp = block.timestamp;
         newLoan.duration = duration;
+        newLoan.startTime = 0;
         newLoan.collateralToken = collateralToken;  
-        newLoan.collateralAmount = collateralAmount; //Potentially Collateral Amount could be zero, however that is up to the Lenders to decide to lend to someone with no collateral upfront
+        newLoan.collateralAmount = collateralAmount;
         newLoan.bid = Library.defaultBid();
+        
+        loans[loanIds] = newLoan; 
         loanIds++;
 
         return newLoan.loanId;
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
-        uint256 proposedLoanCreationDate = loans[_loanId].creationTimeStamp; // needs gas effecientcy rewrite
-        uint256 currentLoans = loans[_loanId].bids; // needs gas effecientcy rewrite
+        Library.Loan storage loan = loans[_loanId];
+        uint256 currentLoans = loan.bids;
         
         require(accountExists[msg.sender], "Account does not exist");
-        require(proposedLoanCreationDate != 0, "Loan Does not exist");//check if bidding peroid ongoing check if loan exists
-        require(block.timestamp <= (proposedLoanCreationDate + 7 days), "Bidding period for this loan has ended"); //check if bidding peroid ongoing
+        require(loan.creationTimeStamp != 0, "Loan Does not exist");
+        require(block.timestamp <= (loan.creationTimeStamp + 7 days), "Bidding period for this loan has ended");
         
         //create bid and add to mapping
         Library.Bid memory newBid = Library.Bid({
@@ -122,7 +129,7 @@ contract LoanMarketPlace is Ownable{
             accepted : false
         });
 
-        loans[_loanId].bids++;   // needs gas effecientcy rewrite
+        loan.bids++;
         loanOffers[_loanId][currentLoans] = newBid;
     }
 
@@ -143,6 +150,7 @@ contract LoanMarketPlace is Ownable{
         selectedBid.accepted = true;
         selectedLoan.bid = selectedBid;
         selectedLoan.loanStatus = Library.LoanStatus.InProgress;
+        selectedLoan.startTime = selectedLoan.duration + block.timestamp;
 
         
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
@@ -156,17 +164,17 @@ contract LoanMarketPlace is Ownable{
     function repayLoan(uint256 _loanId) public {
         Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
-        require(block.timestamp <= selectedLoan.creationTimeStamp + selectedLoan.duration, "Loan repayment period has ended");
+        require(block.timestamp <= selectedLoan.startTime + selectedLoan.duration, "Loan repayment period has ended");
         require(selectedLoan.loanStatus == Library.LoanStatus.InProgress, "Loan is not in Progress");
 
         //Not necessary?
         //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
         //what do if tokens are transferred out side of this contract? 
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
-        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid); // amount + APR
+        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);// amount + APR
 
        
-        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount);  //need to pay back collatearl to borrower
+        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount); //need to pay back collatearl to borrower
         //Check to see if loan is enough
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
 
@@ -176,7 +184,7 @@ contract LoanMarketPlace is Ownable{
         //Lender can claim collateral if loan isn't repaid in time
         Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
-        require(block.timestamp >= selectedLoan.creationTimeStamp + selectedLoan.duration, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
+        require(block.timestamp >= selectedLoan.startTime + selectedLoan.duration, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
 
         selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
 
@@ -211,10 +219,12 @@ contract LoanMarketPlace is Ownable{
     function getAllBidsForProposedLoan(uint256 _loanId) public view returns(Library.Bid[] memory){
         //Get number of bids for proposedLoan
         //Desparately needs gas optimziation
-        Library.Bid[] memory bids;
         Library.Loan memory proposedLoan = loans[_loanId];
-
-        for(uint256 i; i< proposedLoan.bids; i++){
+        uint256 bidsCount = proposedLoan.bids;
+    
+        Library.Bid[] memory bids = new Library.Bid[](bidsCount);
+    
+        for(uint256 i = 0; i < bidsCount; i++){
             bids[i] = loanOffers[_loanId][i];
         }
         
