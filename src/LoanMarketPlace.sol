@@ -140,8 +140,8 @@ contract LoanMarketPlace is Ownable{
         Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
-        require(selectedLoan.creationTimeStamp + 7 days <= block.timestamp, "Cannot select bid until bidding process is over");//make sure it's within timeframe
-        require(selectedLoan.creationTimeStamp + 14 days >= block.timestamp, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
+        require(block.timestamp >= selectedLoan.creationTimeStamp + 7 days, "Cannot select bid until bidding process is over");//make sure it's within timeframe
+        require(block.timestamp <= selectedLoan.creationTimeStamp + 14 days, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
         
 
         Library.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
@@ -150,15 +150,13 @@ contract LoanMarketPlace is Ownable{
         selectedBid.accepted = true;
         selectedLoan.bid = selectedBid;
         selectedLoan.loanStatus = Library.LoanStatus.InProgress;
-        selectedLoan.startTime = selectedLoan.duration + block.timestamp;
+        selectedLoan.startTime = block.timestamp;
 
         
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
         IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
 
         ///What happens if approval is recalled? Ding their account???
-
-        //Update Account Data
     }
 
     function repayLoan(uint256 _loanId) public {
@@ -168,20 +166,17 @@ contract LoanMarketPlace is Ownable{
         require(selectedLoan.loanStatus == Library.LoanStatus.InProgress, "Loan is not in Progress");
 
         //Not necessary?
-        //uint256 allowedAmount = IERC20(selectedLoan.loanToken).allowance(selectedLoan.borrower, address(this));//Check If this contract is approved to transfer tokens
         //what do if tokens are transferred out side of this contract? 
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);// amount + APR
 
        
         IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount); //need to pay back collatearl to borrower
-        //Check to see if loan is enough
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
 
     }
 
     function claimCollateral(uint256 _loanId) public {
-        //Lender can claim collateral if loan isn't repaid in time
         Library.Loan storage  selectedLoan = loans[_loanId];
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
         require(block.timestamp >= selectedLoan.startTime + selectedLoan.duration, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
