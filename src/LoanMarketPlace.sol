@@ -181,8 +181,8 @@ contract LoanMarketPlace is Ownable{
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);// amount + APR
 
-        uint256 totalColaltearlToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
-        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount); //need to pay back collatearl to borrower
+        uint256 totalCollateralToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
+        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, totalCollateralToBeRepaid); //need to pay back collatearl to borrower
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
 
     }
@@ -194,8 +194,8 @@ contract LoanMarketPlace is Ownable{
 
         selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
 
-        uint256 totalColaltearlToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
-        IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
+        uint256 totalCollateralToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
+        IERC20(selectedLoan.collateralToken).transfer(msg.sender, totalCollateralToBeRepaid);
     }
 
 
@@ -208,8 +208,8 @@ contract LoanMarketPlace is Ownable{
 
     function calculatePlatformFees(uint256 _collateralAmount) public pure returns (uint) {
         // platFormFee = collateral Amount *  platofrmFee / 10000 (to account for basis points)
-        uint platFormFee = _collateralAmount * platFormFee / 10000; 
-        return platFormFee;
+        uint platformCosts = _collateralAmount * platFormFee / 10000; 
+        return platformCosts;
     }
 
     ////Getter Functions/////
