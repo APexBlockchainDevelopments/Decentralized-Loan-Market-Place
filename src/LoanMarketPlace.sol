@@ -30,6 +30,7 @@ contract LoanMarketPlace is Ownable{
 
     uint256 private accountIds; //Used to keep track of Accounts
     uint256 private loanIds;  //Used to keep track of loans
+    uint256 constant private platFormFee = 100;
 
     mapping(address => bool) private approvedCollateralTokens; //Used for tokens that are approved for collateral usage. 
 
@@ -37,6 +38,9 @@ contract LoanMarketPlace is Ownable{
     mapping(address => bool) private accountExists;     // Mapping to track existence of accounts | "Does 0x0123 have an account?"
     mapping(uint256 => Library.Loan) private loans; // Mapping to track existence of proposedLoans    
     mapping(uint256 loanId => mapping(uint256 bidId=> Library.Bid)) private loanOffers; // Create a separate mapping for offers
+
+    mapping(address => uint256[]) private borrowerToLoansTheyProposed;
+    mapping(address => uint256[2][]) private lenderToAllLoansBidOn;
 
     constructor() Ownable(msg.sender){}
 
@@ -106,14 +110,17 @@ contract LoanMarketPlace is Ownable{
         newLoan.bid = Library.defaultBid();
         
         loans[loanIds] = newLoan; 
+        borrowerToLoansTheyProposed[msg.sender].push(newLoan.loanId);
         loanIds++;
+
+        //make sure they have enough collateral
 
         return newLoan.loanId;
     }
 
     function createBid(uint256 _loanId, uint256 _APRoffer) public {
         Library.Loan storage loan = loans[_loanId];
-        uint256 currentLoans = loan.bids;
+        uint256 currentNumberOfBids = loan.bids;
         
         require(accountExists[msg.sender], "Account does not exist");
         require(loan.creationTimeStamp != 0, "Loan Does not exist");
@@ -121,7 +128,7 @@ contract LoanMarketPlace is Ownable{
         
         //create bid and add to mapping
         Library.Bid memory newBid = Library.Bid({
-            bidId : currentLoans,
+            bidId : currentNumberOfBids,
             loanId : _loanId,
             lender : msg.sender,
             APRoffer : _APRoffer,
@@ -130,7 +137,9 @@ contract LoanMarketPlace is Ownable{
         });
 
         loan.bids++;
-        loanOffers[_loanId][currentLoans] = newBid;
+        loanOffers[_loanId][currentNumberOfBids] = newBid;
+
+        lenderToAllLoansBidOn[msg.sender].push([_loanId, currentNumberOfBids]);
     }
 
 
@@ -203,6 +212,10 @@ contract LoanMarketPlace is Ownable{
         return loans[loanId];
     }
 
+    function totalNumberOfLoans() public view returns(uint256){
+        return loanIds;
+    }
+
     function getBid(uint256 loanId, uint256 bidId) public view returns(Library.Bid memory){
         return loanOffers[loanId][bidId];
     }
@@ -212,8 +225,6 @@ contract LoanMarketPlace is Ownable{
     }
 
     function getAllBidsForProposedLoan(uint256 _loanId) public view returns(Library.Bid[] memory){
-        //Get number of bids for proposedLoan
-        //Desparately needs gas optimziation
         Library.Loan memory proposedLoan = loans[_loanId];
         uint256 bidsCount = proposedLoan.bids;
     
@@ -228,6 +239,14 @@ contract LoanMarketPlace is Ownable{
 
     function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
         return loans[_loandId].bid;
+    }
+
+    function getAllLoansBasedOnBorrower(address _borrower) public view returns(uint256[] memory){
+        return borrowerToLoansTheyProposed[_borrower];
+    }
+
+    function getBids(address lender) public view returns (uint256[2][] memory) {
+        return lenderToAllLoansBidOn[lender];
     }
 
     //function for getting all loans based on account

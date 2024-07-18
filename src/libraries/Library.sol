@@ -28,7 +28,8 @@ library Library {
         Proposed,
         InProgress,
         Defaulted,
-        Repaid
+        Repaid,
+        Cancelled
     }
 
 
