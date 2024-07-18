@@ -42,6 +42,8 @@ contract LoanMarketPlace is Ownable{
     mapping(address => uint256[]) private borrowerToLoansTheyProposed;
     mapping(address => uint256[2][]) private lenderToAllLoansBidOn;
 
+    //Array for getting approved collateral Tokens?
+
     constructor() Ownable(msg.sender){}
 
     receive() external payable {}
@@ -179,7 +181,7 @@ contract LoanMarketPlace is Ownable{
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);// amount + APR
 
-       
+        uint256 totalColaltearlToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
         IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, selectedLoan.collateralAmount); //need to pay back collatearl to borrower
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
 
@@ -192,6 +194,7 @@ contract LoanMarketPlace is Ownable{
 
         selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
 
+        uint256 totalColaltearlToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
         IERC20(selectedLoan.collateralToken).transfer(msg.sender, selectedLoan.collateralAmount);
     }
 
@@ -203,25 +206,36 @@ contract LoanMarketPlace is Ownable{
         return interest;
     }
 
+    function calculatePlatformFees(uint256 _collateralAmount) public pure returns (uint) {
+        // platFormFee = collateral Amount *  platofrmFee / 10000 (to account for basis points)
+        uint platFormFee = _collateralAmount * platFormFee / 10000; 
+        return platFormFee;
+    }
+
     ////Getter Functions/////
     function getAccount(address accountAddress) public view returns(Library.Account memory){
         return accounts[accountAddress];
-    }
-
-    function getLoan(uint256 loanId) public view returns(Library.Loan memory){
-        return loans[loanId];
     }
 
     function totalNumberOfLoans() public view returns(uint256){
         return loanIds;
     }
 
+    function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
+        return approvedCollateralTokens[_token];
+    }
+
+    
+    function getLoan(uint256 loanId) public view returns(Library.Loan memory){
+        return loans[loanId];
+    }
+
     function getBid(uint256 loanId, uint256 bidId) public view returns(Library.Bid memory){
         return loanOffers[loanId][bidId];
     }
 
-    function checkIfTokenIsApprovedForCollateral(address _token) public view returns(bool) {
-        return approvedCollateralTokens[_token];
+    function getAllLoansBasedOnBorrower(address _borrower) public view returns(uint256[] memory){
+        return borrowerToLoansTheyProposed[_borrower];
     }
 
     function getAllBidsForProposedLoan(uint256 _loanId) public view returns(Library.Bid[] memory){
@@ -237,20 +251,12 @@ contract LoanMarketPlace is Ownable{
         return bids;
     }
 
-    function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
-        return loans[_loandId].bid;
-    }
-
-    function getAllLoansBasedOnBorrower(address _borrower) public view returns(uint256[] memory){
-        return borrowerToLoansTheyProposed[_borrower];
-    }
-
     function getBids(address lender) public view returns (uint256[2][] memory) {
         return lenderToAllLoansBidOn[lender];
     }
 
-    //function for getting all loans based on account
-    //function for getting all bids based on account ..etc
-
+    function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
+        return loans[_loandId].bid;
+    }
     //build these out more just for individual viewing functions.... for example get loan amount based on loan ID....perhaps interface?
 }
