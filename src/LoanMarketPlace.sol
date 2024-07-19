@@ -1,24 +1,3 @@
-// Layout of Contract:
-// version
-// imports
-// errors
-// interfaces, libraries, contracts
-// Type declarations
-// State variables
-// Events
-// Modifiers
-// Functions
-
-// Layout of Functions:
-// constructor
-// receive function (if exists)
-// fallback function (if exists)
-// external
-// public
-// internal
-// private
-// view & pure functions
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
@@ -42,7 +21,6 @@ contract LoanMarketPlace is Ownable{
     mapping(address => uint256[]) private borrowerToLoansTheyProposed;
     mapping(address => uint256[2][]) private lenderToAllLoansBidOn;
 
-    //Array for getting approved collateral Tokens?
 
     constructor() Ownable(msg.sender){}
 
@@ -51,9 +29,9 @@ contract LoanMarketPlace is Ownable{
     fallback() external payable {revert();}
 
     /**
-     * @param _token This is the name of the item to be associated with the item for sale
-     * @param _approval Description of the item for sale
-     * @dev This function allows users to add items to the marketplace. 
+     * @param _token This is the name of the token to be used for collateral
+     * @param _approval Approve or deny token
+     * @dev This function allows the admin to add collateral tokens to an approved or denied list
      */
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
 
@@ -62,9 +40,14 @@ contract LoanMarketPlace is Ownable{
 
     }
 
-    function makeNewAccount() public {
-        require(!accountExists[msg.sender], "Account already exists");
-        Library.Account memory newAccount = Library.Account({
+
+    /**
+     * @dev This function allows users to make an account which is necessary making loan requests or 
+     */
+    function makeNewAccount() external {
+        require(accounts[msg.sender].wallet == address(0), "Account already exists");
+        
+        accounts[msg.sender] = Library.Account({
             wallet : msg.sender,
             accountId : accountIds,
             creationTimeStamp : block.timestamp,
@@ -76,61 +59,66 @@ contract LoanMarketPlace is Ownable{
             loanBids : 0,
             totalLoans : 0
         });
-
-        accounts[msg.sender] = newAccount;
-        accountExists[msg.sender] = true;
         accountIds++;
     }
 
 
+    /**
+     * @param amount amount of token to borrow
+     * @param tokenToBorrow The address of the token to borrow
+     * @param duration The amount of time in seconds to borrow the token
+     * @param tokenToBorrow The address of the token to borrow
+     * @dev This function allows users to make an account which is necessary making loan requests or bidding on loans
+     */
     function submitLoanRequest(
         uint256 amount, 
         address tokenToBorrow, 
         uint256 duration, 
         address collateralToken,
-        uint256 collateralAmount) 
-        public 
+        uint256 collateralAmount
+    ) 
+        external 
         returns(uint256)
-        {
-        
-        require(accountExists[msg.sender], "Account does not exist");
+    {
+        require(accounts[msg.sender].wallet != address(0), "Account does not exist");
         require(approvedCollateralTokens[collateralToken], "Collateral Token Not Approved");
         require(duration > 3600, "Loan Duration too Short");
         require(amount != 0, "Loan Amount cannot be zero");
 
-        Library.Loan memory newLoan; 
-        newLoan.loanStatus = Library.LoanStatus.Proposed;
-        newLoan.loanId = loanIds;
-        newLoan.borrower = msg.sender;
-        newLoan.loanToken = tokenToBorrow;
-        newLoan.amount = amount;
-        newLoan.creationTimeStamp = block.timestamp;
-        newLoan.duration = duration;
-        newLoan.startTime = 0;
-        newLoan.collateralToken = collateralToken;  
-        newLoan.collateralAmount = collateralAmount;
-        newLoan.bid = Library.defaultBid();
-        
-        loans[loanIds] = newLoan; 
-        borrowerToLoansTheyProposed[msg.sender].push(newLoan.loanId);
+        loans[loanIds] = Library.Loan({
+            loanStatus: Library.LoanStatus.Proposed,
+            loanId: loanIds,
+            borrower: msg.sender,
+            loanToken: tokenToBorrow,
+            amount: amount,
+            creationTimeStamp: block.timestamp,
+            duration: duration,
+            startTime: 0,
+            collateralToken: collateralToken,  
+            collateralAmount: collateralAmount,
+            bid: Library.defaultBid(),
+            bids: 0
+        });
+
+        borrowerToLoansTheyProposed[msg.sender].push(loanIds);
         loanIds++;
 
-        //make sure they have enough collateral
-
-        return newLoan.loanId;
+        return loanIds - 1;
     }
 
-    function createBid(uint256 _loanId, uint256 _APRoffer) public {
+    /**
+     * @param _loanId - this is the id of the loan the lender wants to bid on
+     * @param _APRoffer The APR offer in basis points as determinted by the lender
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
+    function createBid(uint256 _loanId, uint256 _APRoffer) external {
         Library.Loan storage loan = loans[_loanId];
-        uint256 currentNumberOfBids = loan.bids;
-        
-        require(accountExists[msg.sender], "Account does not exist");
-        require(loan.creationTimeStamp != 0, "Loan Does not exist");
+        require(accounts[msg.sender].wallet != address(0), "Account does not exist");
+        require(loan.creationTimeStamp != 0, "Loan does not exist");
         require(block.timestamp <= (loan.creationTimeStamp + 7 days), "Bidding period for this loan has ended");
-        
-        //create bid and add to mapping
-        Library.Bid memory newBid = Library.Bid({
-            bidId : currentNumberOfBids,
+
+        loanOffers[_loanId][loan.bids] = Library.Bid({
+            bidId : loan.bids,
             loanId : _loanId,
             lender : msg.sender,
             APRoffer : _APRoffer,
@@ -138,40 +126,44 @@ contract LoanMarketPlace is Ownable{
             accepted : false
         });
 
+        lenderToAllLoansBidOn[msg.sender].push([_loanId, loan.bids]);
         loan.bids++;
-        loanOffers[_loanId][currentNumberOfBids] = newBid;
-
-        lenderToAllLoansBidOn[msg.sender].push([_loanId, currentNumberOfBids]);
     }
 
 
-    //function to withdraw bid??
+    /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
 
-    function selectBid(uint256 _loanId, uint256 _selectedBid) public  {
-        Library.Loan storage  selectedLoan = loans[_loanId];
+    function selectBid(uint256 _loanId, uint256 _selectedBid) external {
+        Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(selectedLoan.bid.lender == address(0), "Bid has already been selected");
-        require(block.timestamp >= selectedLoan.creationTimeStamp + 7 days, "Cannot select bid until bidding process is over");//make sure it's within timeframe
-        require(block.timestamp <= selectedLoan.creationTimeStamp + 14 days, "Bidding peroid has ended, this loan is dead.");//make sure it's within timeframe
-        
+        require(block.timestamp >= selectedLoan.creationTimeStamp + 7 days, "Cannot select bid until bidding process is over");
+        require(block.timestamp <= selectedLoan.creationTimeStamp + 14 days, "Bidding period has ended, this loan is dead");
 
         Library.Bid storage selectedBid = loanOffers[_loanId][_selectedBid];
-        require(selectedBid.lender != address(0), "Bid does not exist"); //make sure bid is legit, borrower can't select bid that doesn't exist
+        require(selectedBid.lender != address(0), "Bid does not exist");
 
         selectedBid.accepted = true;
         selectedLoan.bid = selectedBid;
         selectedLoan.loanStatus = Library.LoanStatus.InProgress;
         selectedLoan.startTime = block.timestamp;
 
-        
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.bid.lender, selectedLoan.borrower, selectedLoan.amount);
         IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
-
-        ///What happens if approval is recalled? Ding their account???
     }
 
-    function repayLoan(uint256 _loanId) public {
-        Library.Loan storage  selectedLoan = loans[_loanId];
+        /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
+
+    function repayLoan(uint256 _loanId) external {
+        Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(block.timestamp <= selectedLoan.startTime + selectedLoan.duration, "Loan repayment period has ended");
         require(selectedLoan.loanStatus == Library.LoanStatus.InProgress, "Loan is not in Progress");
@@ -179,32 +171,62 @@ contract LoanMarketPlace is Ownable{
         //Not necessary?
         //what do if tokens are transferred out side of this contract? 
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
-        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);// amount + APR
+        IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);
 
         uint256 totalCollateralToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
-        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, totalCollateralToBeRepaid); //need to pay back collatearl to borrower
-        selectedLoan.loanStatus = Library.LoanStatus.Repaid;
+        IERC20(selectedLoan.collateralToken).transfer(selectedLoan.borrower, totalCollateralToBeRepaid);
 
+        selectedLoan.loanStatus = Library.LoanStatus.Repaid;
     }
 
-    function claimCollateral(uint256 _loanId) public {
-        Library.Loan storage  selectedLoan = loans[_loanId];
+        /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
+
+
+    function claimCollateral(uint256 _loanId) external {
+        Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
-        require(block.timestamp >= selectedLoan.startTime + selectedLoan.duration, "Cannot claim collertal until duration of loan is over.");//make sure it's within timeframe
-
+        require(block.timestamp >= selectedLoan.startTime + selectedLoan.duration, "Cannot claim collateral until loan duration is over");
+    
         selectedLoan.loanStatus = Library.LoanStatus.Defaulted;
-
+    
         uint256 totalCollateralToBeRepaid = selectedLoan.collateralAmount - calculatePlatformFees(selectedLoan.collateralAmount);
         IERC20(selectedLoan.collateralToken).transfer(msg.sender, totalCollateralToBeRepaid);
     }
 
 
-    //@params _duration is in seconds
+            /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
+
+
+    function claimERC20(address _token, uint256 _amount) external onlyOwner {
+        IERC20(_token).transfer(owner(), _amount);
+    }
+
+
+        /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
+
     function calculateInterest(uint256 _amount, uint256 _apr, uint256 _duration) public pure returns (uint) {
         // Interest = loan amount * APR * (loan duration / 365 days) / 10000 (to account for basis points)
         uint interest = (_amount * _apr * _duration) / (365 days * 10000);
         return interest;
     }
+
+        /**
+     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
+     * @param _selectedBid This is the particular bid the 
+     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     */
 
     function calculatePlatformFees(uint256 _collateralAmount) public pure returns (uint) {
         // platFormFee = collateral Amount *  platofrmFee / 10000 (to account for basis points)
