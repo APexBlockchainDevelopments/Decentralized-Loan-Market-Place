@@ -34,15 +34,12 @@ contract LoanMarketPlace is Ownable{
      * @dev This function allows the admin to add collateral tokens to an approved or denied list
      */
     function approvedOrDenyCollateralToken(address _token, bool _approval) public onlyOwner {
-
-        //This function doubles as a blacklist function if a token has some type of issues allowing the admins to disable it or enable it if it's deemed fit
         approvedCollateralTokens[_token] = _approval;
-
     }
 
 
     /**
-     * @dev This function allows users to make an account which is necessary making loan requests or 
+     * @dev This function allows users to make an account which is necessary making loan requests or bids on loans
      */
     function makeNewAccount() external {
         require(accounts[msg.sender].wallet == address(0), "Account already exists");
@@ -133,10 +130,9 @@ contract LoanMarketPlace is Ownable{
 
     /**
      * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
-     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+     * @param _selectedBid This is the particular bid the the borrower wants to select
+     * @dev This function allows the borrower to select the bid they wish to use for the loan.
      */
-
     function selectBid(uint256 _loanId, uint256 _selectedBid) external {
         Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
@@ -156,20 +152,16 @@ contract LoanMarketPlace is Ownable{
         IERC20(selectedLoan.collateralToken).transferFrom(selectedLoan.borrower, address(this), selectedLoan.collateralAmount);
     }
 
-        /**
-     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
-     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+    /**
+     * @param _loanId - This is the id of the loan the borrower wishes to repay
+     * @dev This function allows borrower to repay the loan and claim the collateral back
      */
-
     function repayLoan(uint256 _loanId) external {
         Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.borrower == msg.sender, "You are not the borrower of this loan");
         require(block.timestamp <= selectedLoan.startTime + selectedLoan.duration, "Loan repayment period has ended");
         require(selectedLoan.loanStatus == Library.LoanStatus.InProgress, "Loan is not in Progress");
 
-        //Not necessary?
-        //what do if tokens are transferred out side of this contract? 
         uint256 totalAmountToBeRepaid = selectedLoan.amount + calculateInterest(selectedLoan.amount, selectedLoan.bid.APRoffer, selectedLoan.duration);
         IERC20(selectedLoan.loanToken).transferFrom(selectedLoan.borrower, selectedLoan.bid.lender, totalAmountToBeRepaid);
 
@@ -179,13 +171,10 @@ contract LoanMarketPlace is Ownable{
         selectedLoan.loanStatus = Library.LoanStatus.Repaid;
     }
 
-        /**
-     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
-     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+    /**
+     * @param _loanId - This is the id of the loan the lender wants to claim the collateral
+     * @dev This allowd the lender to claim collateral on a loan that has not be repaid
      */
-
-
     function claimCollateral(uint256 _loanId) external {
         Library.Loan storage selectedLoan = loans[_loanId];
         require(selectedLoan.bid.lender == msg.sender, "You are not the lender of this loan");
@@ -198,36 +187,32 @@ contract LoanMarketPlace is Ownable{
     }
 
 
-            /**
-     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
-     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+    /**
+     * @param _token - The Address of the ERC20 to be claimed - this would be a collateral token
+     * @param _amount -  The amount the owner wishes to send
+     * @dev This function allows for the owner to claim any sort of platfees that may occur.
      */
-
-
     function claimERC20(address _token, uint256 _amount) external onlyOwner {
         IERC20(_token).transfer(owner(), _amount);
     }
 
 
-        /**
-     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
+    /**
+     * @param _amount - Amount of borrowed token
+     * @param _apr - APR of the borrowed Loan
+     * @param _duration - Amount f time in seconds the loan is requested for
      * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
      */
-
     function calculateInterest(uint256 _amount, uint256 _apr, uint256 _duration) public pure returns (uint) {
         // Interest = loan amount * APR * (loan duration / 365 days) / 10000 (to account for basis points)
         uint interest = (_amount * _apr * _duration) / (365 days * 10000);
         return interest;
     }
 
-        /**
-     * @param _loanId - This is the id of the loan the borrower wishes to select as their lender
-     * @param _selectedBid This is the particular bid the 
-     * @dev This function allows lenders to bid on loans providing the lowest APR to the borrower
+    /**
+     * @param _collateralAmount - Amount of collateral, the platform fee is taken from that
+     * @dev This function is to calculate the fees the platform will take from the collateral
      */
-
     function calculatePlatformFees(uint256 _collateralAmount) public pure returns (uint) {
         // platFormFee = collateral Amount *  platofrmFee / 10000 (to account for basis points)
         uint platformCosts = _collateralAmount * platFormFee / 10000; 
@@ -280,5 +265,4 @@ contract LoanMarketPlace is Ownable{
     function getSelectedBid(uint256 _loandId) public view returns(Library.Bid memory){
         return loans[_loandId].bid;
     }
-    //build these out more just for individual viewing functions.... for example get loan amount based on loan ID....perhaps interface?
 }
