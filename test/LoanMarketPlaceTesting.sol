@@ -51,27 +51,27 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace = new LoanMarketPlace();
     }
 
-    // function test_checkOwner() public view{
-    //     assertEq(loanMarketPlace.owner(), admin);
-    // }
+    function test_checkOwner() public view{
+        assertEq(loanMarketPlace.owner(), admin);
+    }
 
-    // function test_sendEthToContract() public {
-    //     uint256 balanceBefore = address(loanMarketPlace).balance;
-    //     vm.deal(address(loanMarketPlace), 10e18);
-    //     assertEq(balanceBefore + 10e18, address(loanMarketPlace).balance);
-    // }
+    function test_sendEthToContract() public {
+        uint256 balanceBefore = address(loanMarketPlace).balance;
+        vm.deal(address(loanMarketPlace), 10e18);
+        assertEq(balanceBefore + 10e18, address(loanMarketPlace).balance);
+    }
 
-    // function test_ownerCanAddCollateralToken() public {
-    //     assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
+    function test_ownerCanAddCollateralToken() public {
+        assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
 
-    //     vm.prank(admin);
-    //     loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
-    //     assertTrue(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
+        vm.prank(admin);
+        loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
+        assertTrue(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
 
-    //     vm.prank(admin);
-    //     loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, false);
-    //     assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
-    // }
+        vm.prank(admin);
+        loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, false);
+        assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
+    }
 
     // function test_nonOwnerCantUpdateApprovedCollateralTokens() public {
     //     vm.prank(random);
