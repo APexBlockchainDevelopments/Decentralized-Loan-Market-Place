@@ -73,130 +73,130 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertFalse(loanMarketPlace.checkIfTokenIsApprovedForCollateral(collateralTokenAddress));
     }
 
-    // function test_nonOwnerCantUpdateApprovedCollateralTokens() public {
-    //     vm.prank(random);
-    //     vm.expectRevert();
-    //     loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
-    // }
+    function test_nonOwnerCantUpdateApprovedCollateralTokens() public {
+        vm.prank(random);
+        vm.expectRevert();
+        loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
+    }
     
 
-    // function test_userCanCreateAccount() public {
-    //     vm.prank(borrower);
-    //     loanMarketPlace.makeNewAccount();
+    function test_userCanCreateAccount() public {
+        vm.prank(borrower);
+        loanMarketPlace.makeNewAccount();
 
-    //     Library.Account memory newAccount = loanMarketPlace.getAccount(borrower);
+        Library.Account memory newAccount = loanMarketPlace.getAccount(borrower);
         
-    //     assertEq(newAccount.wallet, borrower);
-    //     assertEq(newAccount.accountId, 0);
-    //     assertEq(newAccount.creationTimeStamp, block.timestamp);
-    //     assertEq(newAccount.totalAmountBorrowed, 0);
-    //     assertEq(newAccount.requestedLoans, 0);
-    //     assertEq(newAccount.successfulLoansCompletedAndRepaid, 0);
-    //     assertEq(newAccount.totalAmountRepaid, 0);
-    //     assertEq(newAccount.totalAmountLent, 0);
-    //     assertEq(newAccount.loanBids, 0);
-    //     assertEq(newAccount.totalLoans, 0);
-    // }
+        assertEq(newAccount.wallet, borrower);
+        assertEq(newAccount.accountId, 0);
+        assertEq(newAccount.creationTimeStamp, block.timestamp);
+        assertEq(newAccount.totalAmountBorrowed, 0);
+        assertEq(newAccount.requestedLoans, 0);
+        assertEq(newAccount.successfulLoansCompletedAndRepaid, 0);
+        assertEq(newAccount.totalAmountRepaid, 0);
+        assertEq(newAccount.totalAmountLent, 0);
+        assertEq(newAccount.loanBids, 0);
+        assertEq(newAccount.totalLoans, 0);
+    }
 
-    // function test_userCantCreateAccountTwice() public borrowerMakesAccount {
-    //     vm.prank(borrower);
-    //     vm.expectRevert("Account already exists");
-    //     loanMarketPlace.makeNewAccount();
-    // }
+    function test_userCantCreateAccountTwice() public borrowerMakesAccount {
+        vm.prank(borrower);
+        vm.expectRevert("Account already exists");
+        loanMarketPlace.makeNewAccount();
+    }
 
-    // function test_makeNewAccounts(uint256 numberOfUsers) public {
-    //     numberOfUsers = bound(numberOfUsers, 1, 1000); // Bound the number of users to be between 1 and 1000
+    function test_makeNewAccounts(uint256 numberOfUsers) public {
+        numberOfUsers = bound(numberOfUsers, 1, 1000); // Bound the number of users to be between 1 and 1000
 
-    //     for (uint256 i = 0; i < numberOfUsers; i++) {
-    //         address user = address(uint160(uint256(keccak256(abi.encode(i)))));
-    //         vm.startPrank(user);
-    //         loanMarketPlace.makeNewAccount();
-    //         vm.stopPrank();
+        for (uint256 i = 0; i < numberOfUsers; i++) {
+            address user = address(uint160(uint256(keccak256(abi.encode(i)))));
+            vm.startPrank(user);
+            loanMarketPlace.makeNewAccount();
+            vm.stopPrank();
             
-    //         // Assert that the account was created correctly
-    //         Library.Account memory account = loanMarketPlace.getAccount(user);
-    //         assertEq(account.wallet, user);
-    //         assertEq(account.accountId, i);
-    //     }
-    // }
+            // Assert that the account was created correctly
+            Library.Account memory account = loanMarketPlace.getAccount(user);
+            assertEq(account.wallet, user);
+            assertEq(account.accountId, i);
+        }
+    }
 
-    // function test_submitloanRequest() public borrowerMakesAccount adminAddsCollateralTokenToApprovedCollateralTokens{
-    //     vm.prank(borrower);
-    //     uint256 testingLoanId = loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+    function test_submitloanRequest() public borrowerMakesAccount adminAddsCollateralTokenToApprovedCollateralTokens{
+        vm.prank(borrower);
+        uint256 testingLoanId = loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
 
-    //     // Get the loan and check its status
-    //     Library.Loan memory loan = loanMarketPlace.getLoan(testingLoanId);
-    //     assertEq(uint(loan.loanStatus), uint(Library.LoanStatus.Proposed));
+        // Get the loan and check its status
+        Library.Loan memory loan = loanMarketPlace.getLoan(testingLoanId);
+        assertEq(uint(loan.loanStatus), uint(Library.LoanStatus.Proposed));
   
-    //     // Check if the loan status matches the expected status
-    //     assertTrue(loan.loanStatus == Library.LoanStatus.Proposed, "Loan status should be Proposed"); 
-    //     assertEq(testingLoanId, loan.loanId);
-    //     assertEq(loan.borrower, borrower);
-    //     assertEq(loan.amount, defaultBorrowAmount);
-    //     assertEq(loan.loanToken, borrowTokenAddress);
-    //     assertEq(loan.creationTimeStamp, block.timestamp);
-    //     assertEq(loan.duration, defaultLoanTime);
-    //     assertEq(loan.collateralToken, collateralTokenAddress);
-    //     assertEq(loan.collateralAmount, defaultCollateralAmount);
-    //     assertEq(loan.bids, 0);
+        // Check if the loan status matches the expected status
+        assertTrue(loan.loanStatus == Library.LoanStatus.Proposed, "Loan status should be Proposed"); 
+        assertEq(testingLoanId, loan.loanId);
+        assertEq(loan.borrower, borrower);
+        assertEq(loan.amount, defaultBorrowAmount);
+        assertEq(loan.loanToken, borrowTokenAddress);
+        assertEq(loan.creationTimeStamp, block.timestamp);
+        assertEq(loan.duration, defaultLoanTime);
+        assertEq(loan.collateralToken, collateralTokenAddress);
+        assertEq(loan.collateralAmount, defaultCollateralAmount);
+        assertEq(loan.bids, 0);
 
-    //     Library.Bid memory bid = Library.defaultBid();
-    //     assertEq(loan.bid.bidId, bid.bidId);
-    //     assertEq(loan.bid.loanId, bid.loanId);
-    //     assertEq(loan.bid.lender, bid.lender);
-    //     assertEq(loan.bid.APRoffer, bid.APRoffer);
-    //     assertEq(loan.bid.timeStamp, bid.timeStamp);
-    //     assertFalse(loan.bid.accepted);
-    // }
+        Library.Bid memory bid = Library.defaultBid();
+        assertEq(loan.bid.bidId, bid.bidId);
+        assertEq(loan.bid.loanId, bid.loanId);
+        assertEq(loan.bid.lender, bid.lender);
+        assertEq(loan.bid.APRoffer, bid.APRoffer);
+        assertEq(loan.bid.timeStamp, bid.timeStamp);
+        assertFalse(loan.bid.accepted);
+    }
 
-    // function test_submitloanWithoutAccount() public adminAddsCollateralTokenToApprovedCollateralTokens{
-    //     vm.prank(borrower);
-    //     vm.expectRevert();
-    //     loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
-    // }
+    function test_submitloanWithoutAccount() public adminAddsCollateralTokenToApprovedCollateralTokens{
+        vm.prank(borrower);
+        vm.expectRevert();
+        loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+    }
 
-    // function test_bidSubmission() public 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // {   
-    //     vm.prank(lender);
-    //     loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    function test_bidSubmission() public 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    {   
+        vm.prank(lender);
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
         
-    //     Library.Loan memory firstLoan = loanMarketPlace.getLoan(0);
+        Library.Loan memory firstLoan = loanMarketPlace.getLoan(0);
         
-    //     assertEq(firstLoan.bids, 1);
+        assertEq(firstLoan.bids, 1);
         
-    //     Library.Bid memory bid = loanMarketPlace.getBid(0, 0);  //Getting Bid from LoanMarketplace Contract
+        Library.Bid memory bid = loanMarketPlace.getBid(0, 0);  //Getting Bid from LoanMarketplace Contract
         
-    //     assertEq(bid.bidId, 0);
-    //     assertEq(bid.loanId, 0);
-    //     assertEq(bid.lender, lender);
-    //     assertEq(bid.APRoffer, defaultAPROffer);
-    //     assertEq(bid.timeStamp, block.timestamp);
-    //     assertEq(bid.accepted, false);
-    // }
+        assertEq(bid.bidId, 0);
+        assertEq(bid.loanId, 0);
+        assertEq(bid.lender, lender);
+        assertEq(bid.APRoffer, defaultAPROffer);
+        assertEq(bid.timeStamp, block.timestamp);
+        assertEq(bid.accepted, false);
+    }
 
-    // function test_nonUserCantCreateBid() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // public {
-    //     vm.prank(lender);
-    //     vm.expectRevert("Account does not exist");
-    //     loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
-    // }
+    function test_nonUserCantCreateBid() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    borrowerSubmitsBasicLoan 
+    public {
+        vm.prank(lender);
+        vm.expectRevert("Account does not exist");
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    }
 
-    // function test_lenderCantBidOnLoanThatDoesntExist() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // public {
-    //     vm.prank(lender);
-    //     vm.expectRevert("Loan Does not exist");
-    //     loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
-    // }
+    function test_lenderCantBidOnLoanThatDoesntExist() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    public {
+        vm.prank(lender);
+        vm.expectRevert("Loan does not exist");
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+    }
 
     
     // function test_lenderCantBidOnLoanAfterBiddingPeroid() 
@@ -503,57 +503,57 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     // }
 
 
-    // /*//////////////////////////////////////////////////////////////
-    //                            MODIFIERES
-    // //////////////////////////////////////////////////////////////*/
-    // modifier adminAddsCollateralTokenToApprovedCollateralTokens() {
-    //     vm.prank(admin);
-    //     loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
-    //     _;
-    // }
+    /*//////////////////////////////////////////////////////////////
+                               MODIFIERES
+    //////////////////////////////////////////////////////////////*/
+    modifier adminAddsCollateralTokenToApprovedCollateralTokens() {
+        vm.prank(admin);
+        loanMarketPlace.approvedOrDenyCollateralToken(collateralTokenAddress, true);
+        _;
+    }
 
-    // modifier borrowerMakesAccount() {
-    //     vm.prank(borrower);
-    //     loanMarketPlace.makeNewAccount();
-    //     _;
-    // }
+    modifier borrowerMakesAccount() {
+        vm.prank(borrower);
+        loanMarketPlace.makeNewAccount();
+        _;
+    }
 
-    // modifier lenderMakesAccount() {
-    //     vm.prank(lender);
-    //     loanMarketPlace.makeNewAccount();
-    //     _;
-    // }
+    modifier lenderMakesAccount() {
+        vm.prank(lender);
+        loanMarketPlace.makeNewAccount();
+        _;
+    }
 
-    // modifier borrowerSubmitsBasicLoan() {
-    //     vm.prank(borrower);
-    //     loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
-    //     _;
-    // }
+    modifier borrowerSubmitsBasicLoan() {
+        vm.prank(borrower);
+        loanMarketPlace.submitLoanRequest(defaultBorrowAmount, borrowTokenAddress, defaultLoanTime, collateralTokenAddress, defaultCollateralAmount); 
+        _;
+    }
 
-    // modifier lenderSubmitsBasicBid() {
-    //     vm.prank(lender);
-    //     loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
-    //     _;
-    // }
+    modifier lenderSubmitsBasicBid() {
+        vm.prank(lender);
+        loanMarketPlace.createBid(0, defaultAPROffer); // Lender creates bid - APR in basis points (e.g., 500 for 5%)
+        _;
+    }
 
-    // modifier borrowerApprovedCollateral() {
-    //     vm.prank(borrower);
-    //     CollateralToken.approve(address(loanMarketPlace), defaultCollateralAmount);
-    //     _;
-    // }
+    modifier borrowerApprovedCollateral() {
+        vm.prank(borrower);
+        CollateralToken.approve(address(loanMarketPlace), defaultCollateralAmount);
+        _;
+    }
 
-    // modifier lenderApprovedCollateral() {
-    //     vm.prank(lender);
-    //     TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
-    //     _;
-    // }
+    modifier lenderApprovedCollateral() {
+        vm.prank(lender);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount);
+        _;
+    }
 
-    // modifier borrowerSelectsBasicBid() {
-    //     vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
-    //     vm.prank(borrower);
-    //     loanMarketPlace.selectBid(0, 0);
-    //     _;
-    // }
+    modifier borrowerSelectsBasicBid() {
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.prank(borrower);
+        loanMarketPlace.selectBid(0, 0);
+        _;
+    }
 
 
 }
