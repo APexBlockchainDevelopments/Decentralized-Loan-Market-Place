@@ -276,17 +276,17 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     // //write tests if lender removes approval
 
 
-    // function test_userSelectBidBeforeBiddingIsOver() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // public {
-    //     vm.prank(borrower);
-    //     vm.expectRevert("Cannot select bid until bidding process is over");
-    //     loanMarketPlace.selectBid(0, 0);
-    // }
+    function test_userSelectBidBeforeBiddingIsOver() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.expectRevert("Cannot select bid until bidding process is over");
+        loanMarketPlace.selectBid(0, 0);
+    }
 
     // function test_userSelectBidAfterSelectionPeroidIsUp() 
     // adminAddsCollateralTokenToApprovedCollateralTokens
