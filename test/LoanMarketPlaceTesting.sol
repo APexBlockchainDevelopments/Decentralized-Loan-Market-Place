@@ -389,25 +389,25 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     // }
 
 
-    // function test_borrowerCantRepayAfterLoanHasEnded() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+    function test_borrowerCantRepayAfterLoanHasEnded() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
 
-    //     vm.startPrank(borrower);
-    //     TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
-    //     vm.warp(block.timestamp + 60 days + 1); // Warp time by duration + bidding peroid
-    //     vm.expectRevert("Loan repayment period has ended");
-    //     loanMarketPlace.repayLoan(0);
-    //     vm.stopPrank();
-    // }
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
+        vm.warp(block.timestamp + 60 days + 1); // Warp time by duration + bidding peroid
+        vm.expectRevert("Loan repayment period has ended");
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
+    }
 
     // function test_cantRepayIfNotInProgress() 
     // adminAddsCollateralTokenToApprovedCollateralTokens
