@@ -259,18 +259,18 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.InProgress));
     }
 
-    // function test_randomCantSelectLoan() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // public {
-    //     vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
-    //     vm.prank(random);
-    //     vm.expectRevert("You are not the borrower of this loan");
-    //     loanMarketPlace.selectBid(0, 0);
-    // }
+    function test_randomCantSelectLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.prank(random);
+        vm.expectRevert("You are not the borrower of this loan");
+        loanMarketPlace.selectBid(0, 0);
+    }
 
 
     // //write tests if lender removes approval
