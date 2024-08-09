@@ -301,18 +301,18 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     //     loanMarketPlace.selectBid(0, 0);
     // }
 
-    // function test_borrowerSelectsBidThatDoesntExist() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // public {
-    //     vm.prank(borrower);
-    //     vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
-    //     vm.expectRevert("Bid does not exist");
-    //     loanMarketPlace.selectBid(0, 1);
-    // }
+    function test_borrowerSelectsBidThatDoesntExist() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.warp(block.timestamp + 7 days + 1); // Warp time by 7 days
+        vm.expectRevert("Bid does not exist");
+        loanMarketPlace.selectBid(0, 1);
+    }
 
 
 
@@ -373,20 +373,20 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     //     assertEq(marketCollateralPlaceBalanceBeforeRepayment - defaultCollateralAmount, marketCollateralPlaceBalanceAfterRepayment);
     // }
 
-    // function test_nonBorrowerCantRepaysLoan() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     vm.prank(random);
-    //     vm.expectRevert("You are not the borrower of this loan");
-    //     loanMarketPlace.repayLoan(0);
-    // }
+    function test_nonBorrowerCantRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.prank(random);
+        vm.expectRevert("You are not the borrower of this loan");
+        loanMarketPlace.repayLoan(0);
+    }
 
 
     function test_borrowerCantRepayAfterLoanHasEnded() 
