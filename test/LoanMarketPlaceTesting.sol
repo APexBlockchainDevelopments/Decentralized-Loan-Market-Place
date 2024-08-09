@@ -288,18 +288,18 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         loanMarketPlace.selectBid(0, 0);
     }
 
-    // function test_userSelectBidAfterSelectionPeroidIsUp() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // public {
-    //     vm.prank(borrower);
-    //     vm.warp(block.timestamp + 14 days + 1); // Warp time by 7 days
-    //     vm.expectRevert("Bidding peroid has ended, this loan is dead.");
-    //     loanMarketPlace.selectBid(0, 0);
-    // }
+    function test_userSelectBidAfterSelectionPeroidIsUp()
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    public {
+        vm.prank(borrower);
+        vm.warp(block.timestamp + 14 days + 1); // Warp time by 7 days
+        vm.expectRevert("Bidding period has ended, this loan is dead");
+        loanMarketPlace.selectBid(0, 0);
+    }
 
     function test_borrowerSelectsBidThatDoesntExist() 
     adminAddsCollateralTokenToApprovedCollateralTokens
@@ -409,26 +409,26 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
         vm.stopPrank();
     }
 
-    // function test_cantRepayIfNotInProgress() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // //borrowerSelectsBasicBid  - this commenting out because it sets the loan to inprogress. We're testing to see if they can repay a loan that is not in progress
-    // public {
-    //     uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+    function test_cantRepayIfNotInProgress()  //current
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    //borrowerSelectsBasicBid  - this commenting out because it sets the loan to inprogress. We're testing to see if they can repay a loan that is not in progress
+    public {
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
 
-    //     vm.startPrank(borrower);
-    //     TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
-    //     vm.expectRevert("Loan is not in Progress");
-    //     loanMarketPlace.repayLoan(0);
-    //     vm.stopPrank();
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), defaultBorrowAmount + interestAmount);
+        vm.expectRevert("Loan is not in Progress");
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
         
     
-    // }
+    }
 
     // function test_claimCollateral() 
     // adminAddsCollateralTokenToApprovedCollateralTokens
@@ -470,37 +470,37 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     //     assertEq(marketCollateralPlaceBalanceBeforeDefault - defaultCollateralAmount, marketCollateralPlaceBalanceAfterDefault);
     // }
 
-    // function test_nonLenderCantRepaysLoan() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     vm.prank(random);
-    //     vm.expectRevert("You are not the lender of this loan");
-    //     loanMarketPlace.claimCollateral(0);
-    // }
+    function test_nonLenderCantRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.prank(random);
+        vm.expectRevert("You are not the lender of this loan");
+        loanMarketPlace.claimCollateral(0);
+    }
 
 
-    // function test_lenderCantClaimUntilDurationIsOver() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     vm.startPrank(lender);
-    //     vm.expectRevert("Cannot claim collertal until duration of loan is over.");
-    //     loanMarketPlace.claimCollateral(0);
-    //     vm.stopPrank();
-    // }
+    function test_lenderCantClaimUntilDurationIsOver() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        vm.startPrank(lender);
+        vm.expectRevert("Cannot claim collateral until loan duration is over");
+        loanMarketPlace.claimCollateral(0);
+        vm.stopPrank();
+    }
 
 
     /*//////////////////////////////////////////////////////////////
