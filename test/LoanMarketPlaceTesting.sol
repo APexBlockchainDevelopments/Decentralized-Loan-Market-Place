@@ -316,62 +316,63 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
 
 
 
-    // function test_borrowerRepaysLoan() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     //starting values
+    function test_borrowerRepaysLoan() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        //starting values
 
-    //     //Borrow Token
-    //     uint256 borrowerBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
-    //     uint256 lenderBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
-    //     uint256 marketPlaceBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
+        //Borrow Token
+        uint256 borrowerBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
+        uint256 lenderBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
+        uint256 marketPlaceBalanceBeforeRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
 
-    //     //Collateral Token
-    //     uint256 borrowerCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(borrower);
-    //     uint256 lenderCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(lender);
-    //     uint256 marketCollateralPlaceBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        //Collateral Token
+        uint256 borrowerCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceBeforeRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
 
-    //     uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
-    //     uint256 totalPaymentAmount = defaultBorrowAmount + interestAmount;
-    //     vm.startPrank(borrower);
-    //     TokenToBeBorrowed.approve(address(loanMarketPlace), totalPaymentAmount);
-    //     loanMarketPlace.repayLoan(0);
-    //     vm.stopPrank();
+        uint256 interestAmount = loanMarketPlace.calculateInterest(defaultBorrowAmount, defaultAPROffer, defaultLoanTime);
+        uint256 totalPaymentAmount = defaultBorrowAmount + interestAmount;
+        vm.startPrank(borrower);
+        TokenToBeBorrowed.approve(address(loanMarketPlace), totalPaymentAmount);
+        loanMarketPlace.repayLoan(0);
+        vm.stopPrank();
 
-    //     Library.Loan memory loan = loanMarketPlace.getLoan(0);
-    //     assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Repaid));
+        Library.Loan memory loan = loanMarketPlace.getLoan(0);
+        assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Repaid));
 
 
-    //     //Finishing values
+        //Finishing values
 
-    //     //Borrow Token
-    //     uint256 borrowerBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
-    //     uint256 lenderBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
-    //     uint256 marketPlaceBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
+        //Borrow Token
+        uint256 borrowerBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(borrower);
+        uint256 lenderBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(lender);
+        uint256 marketPlaceBalanceAfterRepayment = IERC20(TokenToBeBorrowed).balanceOf(address(loanMarketPlace));
 
-    //     //Collateral Token
-    //     uint256 borrowerCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(borrower);
-    //     uint256 lenderCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(lender);
-    //     uint256 marketCollateralPlaceBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        //Collateral Token
+        uint256 borrowerCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceAfterRepayment = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        uint256 platformFee = loanMarketPlace.calculatePlatformFees(defaultCollateralAmount);
         
 
-    //     //Asserts
-    //     //Borrowed Token
-    //     assertEq(borrowerBalanceBeforeRepayment - totalPaymentAmount, borrowerBalanceAfterRepayment);
-    //     assertEq(lenderBalanceBeforeRepayment + totalPaymentAmount, lenderBalanceAfterRepayment);
-    //     assertEq(marketPlaceBalanceBeforeRepayment, marketPlaceBalanceAfterRepayment);
-    //     //Collateral Token
-    //     assertEq(borrowerCollateralBalanceBeforeRepayment + defaultCollateralAmount, borrowerCollateralBalanceAfterRepayment);
-    //     assertEq(lenderCollateralBalanceBeforeRepayment, lenderCollateralBalanceAfterRepayment);
-    //     assertEq(marketCollateralPlaceBalanceBeforeRepayment - defaultCollateralAmount, marketCollateralPlaceBalanceAfterRepayment);
-    // }
+        //Asserts
+        //Borrowed Token
+        assertEq(borrowerBalanceBeforeRepayment - totalPaymentAmount, borrowerBalanceAfterRepayment);
+        assertEq(lenderBalanceBeforeRepayment + totalPaymentAmount, lenderBalanceAfterRepayment);
+        assertEq(marketPlaceBalanceBeforeRepayment, marketPlaceBalanceAfterRepayment);
+        // //Collateral Token
+        assertEq(borrowerCollateralBalanceBeforeRepayment + defaultCollateralAmount - platformFee, borrowerCollateralBalanceAfterRepayment);  //fee is taken form borrower
+        assertEq(lenderCollateralBalanceBeforeRepayment, lenderCollateralBalanceAfterRepayment); //lender is the same
+        assertEq(marketCollateralPlaceBalanceBeforeRepayment - defaultCollateralAmount + platformFee, marketCollateralPlaceBalanceAfterRepayment);
+    }
 
     function test_nonBorrowerCantRepaysLoan() 
     adminAddsCollateralTokenToApprovedCollateralTokens
@@ -430,45 +431,45 @@ contract LoanMarketPlaceTesting is StdCheats, Test{
     
     }
 
-    // function test_claimCollateral() 
-    // adminAddsCollateralTokenToApprovedCollateralTokens
-    // borrowerMakesAccount
-    // lenderMakesAccount
-    // borrowerSubmitsBasicLoan 
-    // lenderSubmitsBasicBid
-    // borrowerApprovedCollateral
-    // lenderApprovedCollateral
-    // borrowerSelectsBasicBid
-    // public {
-    //     //starting values
+    function test_claimCollateral() 
+    adminAddsCollateralTokenToApprovedCollateralTokens
+    borrowerMakesAccount
+    lenderMakesAccount
+    borrowerSubmitsBasicLoan 
+    lenderSubmitsBasicBid
+    borrowerApprovedCollateral
+    lenderApprovedCollateral
+    borrowerSelectsBasicBid
+    public {
+        //starting values
 
-    //     //Collateral Token
-    //     uint256 borrowerCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(borrower);
-    //     uint256 lenderCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(lender);
-    //     uint256 marketCollateralPlaceBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        //Collateral Token
+        uint256 borrowerCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceBeforeDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
 
-    //     vm.warp(block.timestamp + 60 days + 1);
-    //     vm.prank(lender);
-    //     loanMarketPlace.claimCollateral(0);
+        vm.warp(block.timestamp + 60 days + 1);
+        vm.prank(lender);
+        loanMarketPlace.claimCollateral(0);
 
-    //     Library.Loan memory loan = loanMarketPlace.getLoan(0);
-    //     assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Defaulted));
+        Library.Loan memory loan = loanMarketPlace.getLoan(0);
+        assertEq(uint8(loan.loanStatus), uint8(Library.LoanStatus.Defaulted));
 
 
-    //     //Finishing values
+        //Finishing values
 
-    //     //Collateral Token
-    //     uint256 borrowerCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(borrower);
-    //     uint256 lenderCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(lender);
-    //     uint256 marketCollateralPlaceBalanceAfterDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
-        
+        //Collateral Token
+        uint256 borrowerCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(borrower);
+        uint256 lenderCollateralBalanceAfterDefault = IERC20(CollateralToken).balanceOf(lender);
+        uint256 marketCollateralPlaceBalanceAfterDefault = IERC20(CollateralToken).balanceOf(address(loanMarketPlace));
+        uint256 platformFee = loanMarketPlace.calculatePlatformFees(defaultCollateralAmount);
 
-    //     //Asserts
-    //     //Collateral Token
-    //     assertEq(borrowerCollateralBalanceBeforeDefault, borrowerCollateralBalanceAfterDefault);
-    //     assertEq(lenderCollateralBalanceBeforeDefault + defaultCollateralAmount, lenderCollateralBalanceAfterDefault);
-    //     assertEq(marketCollateralPlaceBalanceBeforeDefault - defaultCollateralAmount, marketCollateralPlaceBalanceAfterDefault);
-    // }
+        //Asserts
+        //Collateral Token
+        assertEq(borrowerCollateralBalanceBeforeDefault, borrowerCollateralBalanceAfterDefault); //does not change
+        assertEq(lenderCollateralBalanceBeforeDefault + defaultCollateralAmount - platformFee, lenderCollateralBalanceAfterDefault);
+        assertEq(marketCollateralPlaceBalanceBeforeDefault - defaultCollateralAmount + platformFee, marketCollateralPlaceBalanceAfterDefault);
+    }
 
     function test_nonLenderCantRepaysLoan() 
     adminAddsCollateralTokenToApprovedCollateralTokens
