@@ -8,23 +8,6 @@ import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInte
 ///SAMPLE CONTRACT
 contract AutoCollection is KeeperCompatibleInterface {
 
-    // // Function that can be called by anyone or by Chainlink Keeper to claim collateral
-    // function claimCollateral(uint256 loanId) public {
-    //     // Loan storage loan = loans[loanId];
-    //     // require(block.timestamp > loan.repaymentDeadline, "Repayment deadline has not passed yet");
-    //     // require(!loan.repaid, "Loan already repaid");
-    //     // require(msg.sender == loan.lender, "Only lender can claim collateral");
-
-    //     // // Transfer collateral to the lender
-    //     // (bool success, ) = loan.lender.call{value: loan.collateralAmount}("");
-    //     // require(success, "Collateral transfer failed");
-
-    //     // // Mark the loan as repaid to prevent re-entrancy
-    //     // loan.repaid = true;
-
-    //     // emit CollateralClaimed(loanId);
-    // }
-
     // Chainlink Keeper function to check if any loans need collateral to be claimed
     function checkUpkeep(bytes calldata /* checkData */) external view override returns (bool upkeepNeeded, bytes memory performData) {
         // upkeepNeeded = false;
