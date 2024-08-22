@@ -10,3 +10,7 @@ John requests a loan of $1,000 USDC for a period of 3 months. Mary places a bid 
 
 Example 2: 
 Joe has account history and requests a loan of 1,000,000,000 SHIBA. Macy bids on the loan for 6.0% APR and a collateral of 3wETH to help secure the loan. Joe does not repay the loan in time so the 3wETH is then claimed by Macy.
+
+
+Updates: 
+Chainlink Automatic Collection on Defaulted Loans
