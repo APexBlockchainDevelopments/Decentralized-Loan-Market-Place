@@ -13,4 +13,4 @@ Joe has account history and requests a loan of 1,000,000,000 SHIBA. Macy bids on
 
 
 Updates: 
-Chainlink Automatic Collection on Defaulted Loans
+Chainlink Automatic Collection on Defaulted Loans using Chain Keepers
